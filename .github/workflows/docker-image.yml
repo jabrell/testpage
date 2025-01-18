@@ -57,16 +57,17 @@ jobs:
       - name: Create SSH key
         run: |
           mkdir -p ~/.ssh/
-          echo "$SSH_TEST" > awskey.pem
+          echo "$SSH_PRIVATE_KEY" > awskey.pem
           sudo chmod 600 awskey.pem
           echo "Host *\n\tStrictHostKeyChecking accept-new\n\n" > ~/.ssh/config
         shell: bash
         env:
-          SSH_PRIVATE_KEY: ${{secrets.SSH_MY}}
+          SSH_PRIVATE_KEY: ${{ vars.SSH_TEST }} 
+          # ${{secrets.SSH_MY}}
       - name: Deploy to AWS
         run: |
           echo $(ls -al)
-          echo $SSH_TEST
+          echo $SSH_PRIVATE_KEY
           cat awskey.pem
         #ssh -i awskey.pem ec2-user@ec2-3-122-193-176.eu-central-1.compute.amazonaws.com "touch i_was_here.txt" 
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker pull ghcr.io/username/repo:latest"
