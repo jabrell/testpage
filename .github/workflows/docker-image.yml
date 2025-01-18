@@ -66,9 +66,17 @@ jobs:
           SSH_PRIVATE_KEY: ${{secrets.SSH_MY}}
       - name: Deploy to AWS
         run: |
-          ssh -v -i awskey.pem -o strictHostKeyChecking=accept-new ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "touch i_was_here223.txt" 
-          ssh -i awskey.pem ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "docker login ${{ env.REGISTRY }} -u username -p ${{ secrets.GITHUB_TOKEN }}"
-          ssh -i awskey.pem ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "docker pull ${{ env.REGISTRY }}/${{ github.actor }}/testpage:main"
+          ssh -i awskey.pem ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "
+          docker login ${{ env.REGISTRY }} -u username -p ${{ secrets.GITHUB_TOKEN }} &&
+          docker pull ${{ env.REGISTRY }}/${{ github.actor }}/testpage:main &&
+          docker rm -f my-app || true &&
+          docker run -d --name my-app -p 80:8000 ${{ env.REGISTRY }}/${{ github.actor }}/testpage:main
+          "
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker pull ghcr.io/username/repo:latest"
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker run -d -p 80:80 ghcr.io/username/repo:latest"
         shell: bash
+    #     docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com &&
+    #     docker pull $DOCKER_IMAGE &&
+    #     docker rm -f my-app || true &&
+    #     docker run -d --name my-app -p 80:8000 $DOCKER_IMAGE
+    #   "
