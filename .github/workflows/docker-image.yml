@@ -53,11 +53,12 @@ jobs:
 
   deploy_aws:
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
     steps:
       - name: Create SSH key
         run: |
           mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > awskey.pem
           echo "$SSH_PRIVATE_KEY" | tr -d '\r' > awskey.pem
           chmod 600 awskey.pem
         shell: bash
