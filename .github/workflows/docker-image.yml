@@ -61,13 +61,16 @@ jobs:
           echo "$SSH_PRIVATE_KEY" | tr -d '\r' > awskey.pem
           chmod 600 awskey.pem
           echo "Host *\n\tStrictHostKeyChecking accept-new\n\n" > ~/.ssh/config
+          chmod 600 ~/.ssh/config
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{ vars.SSH_TEST }} 
           # ${{secrets.SSH_MY}}
       - name: Deploy to AWS
         run: |
-          ssh -v -i awskey.pem ec2-user@ec2-3-122-193-176.eu-central-1.compute.amazonaws.com "touch i_was_here3.txt" 
+          cat ~/.ssh/config
+          echo $(pwd)
+          ssh -v -i awskey.pem -o strictHostKeyChecking=accept-new ec2-user@ec2-3-122-193-176.eu-central-1.compute.amazonaws.com "touch i_was_here2.txt" 
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker pull ghcr.io/username/repo:latest"
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker run -d -p 80:80 ghcr.io/username/repo:latest"
         shell: bash
