@@ -58,6 +58,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh/
           echo "$SSH_PRIVATE_KEY" > awskey.pem
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > awskey.pem
           chmod 600 awskey.pem
           echo "Host *\n\tStrictHostKeyChecking accept-new\n\n" > ~/.ssh/config
         shell: bash
