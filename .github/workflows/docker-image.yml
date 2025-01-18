@@ -57,15 +57,17 @@ jobs:
       - name: Create SSH key
         run: |
           mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ../private.key
-          sudo chmod 600 ../private.key
+          echo "$SSH_PRIVATE_KEY" > awskey.pem
+          sudo chmod 600 awskey.pem
           echo "Host *\n\tStrictHostKeyChecking accept-new\n\n" > ~/.ssh/config
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_AWS}}
           # SSH_KEY_PATH: ${{ github.workspace }}/../private.key
       - name: Deploy to AWS
-        run: ssh -i ../private.key ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "touch i_was_here.txt" 
+        run: |
+          cat awskey.pem
+          ssh -i awskey.pem ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "touch i_was_here.txt" 
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker pull ghcr.io/username/repo:latest"
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker run -d -p 80:80 ghcr.io/username/repo:latest"
         shell: bash
