@@ -66,7 +66,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{secrets.SSH_MY}}
       - name: Deploy to AWS
         run: |
-          ssh -i awskey.pem ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "
+          ssh -i awskey.pem  -o strictHostKeyChecking=accept-new ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} "
           docker login ${{ env.REGISTRY }} -u username -p ${{ secrets.GITHUB_TOKEN }} &&
           docker pull ${{ env.REGISTRY }}/${{ github.actor }}/testpage:main &&
           docker rm -f my-app || true &&
