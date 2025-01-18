@@ -62,8 +62,7 @@ jobs:
           echo "Host *\n\tStrictHostKeyChecking accept-new\n\n" > ~/.ssh/config
         shell: bash
         env:
-          SSH_PRIVATE_KEY: ${{secrets.SSH_AWS}}
-          # SSH_KEY_PATH: ${{ github.workspace }}/../private.key
+          SSH_PRIVATE_KEY: ${{secrets.SSH_MY}}
       - name: Deploy to AWS
         run: |
           ssh -i awskey.pem ec2-user@ec2-3-122-193-176.eu-central-1.compute.amazonaws.com "touch i_was_here.txt" 
