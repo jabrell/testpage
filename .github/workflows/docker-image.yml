@@ -67,7 +67,6 @@ jobs:
       - name: Deploy to AWS
         run: |
           echo $(ls -al)
-          echo $SSH_PRIVATE_KEY
           cat awskey.pem
         #ssh -i awskey.pem ec2-user@ec2-3-122-193-176.eu-central-1.compute.amazonaws.com "touch i_was_here.txt" 
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker pull ghcr.io/username/repo:latest"
