@@ -67,7 +67,7 @@ jobs:
           # ${{secrets.SSH_MY}}
       - name: Deploy to AWS
         run: |
-          ssh -v -i awskey.pem -o strictHostKeyChecking=accept-new ec2-user@ec2-3-122-193-176.eu-central-1.compute.amazonaws.com "touch i_was_here2.txt" 
+          ssh -v -i awskey.pem ec2-user@ec2-3-122-193-176.eu-central-1.compute.amazonaws.com "touch i_was_here3.txt" 
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker pull ghcr.io/username/repo:latest"
         # ssh -i ../private.key ubuntu@${{ secrets.AWS_IP }} "docker run -d -p 80:80 ghcr.io/username/repo:latest"
         shell: bash
