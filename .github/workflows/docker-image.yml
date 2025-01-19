@@ -11,7 +11,6 @@ env:
 
 jobs:
   build-and-push-image:
-    if: false
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -80,7 +79,8 @@ jobs:
           IMAGE: ${{ env.REGISTRY }}/${{ github.actor }}/testpage:main
 
   deploy_wwz:
-    # needs: build-and-push-image
+    if: false
+    needs: build-and-push-image
     runs-on: ubuntu-latest
     permissions:
       packages: read
