@@ -1,4 +1,5 @@
 # simple hello world with fast api
+
 from fastapi import FastAPI
 
 app = FastAPI()
