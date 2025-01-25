@@ -1,4 +1,4 @@
-name: Create Image
+name: Deploy to AWS
 
 on:
   workflow_dispatch:
