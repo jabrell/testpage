@@ -1,1 +1,1 @@
-from .database_access_layer import DatabaseAccessLayer
+from .database_access_layer import DatabaseAccessLayer, get_db_session

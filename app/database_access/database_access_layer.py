@@ -4,6 +4,12 @@ import app.models as models  # noqa: F401
 from app.settings import db_url
 
 
+def get_db_session() -> Session:
+    """Get a new database session"""
+    dal = DatabaseAccessLayer(db_url)
+    return Session(dal.engine)
+
+
 class DatabaseAccessLayer:
     """Database access layer class that handles database connections"""
 
@@ -21,8 +27,4 @@ class DatabaseAccessLayer:
     @property
     def session(self) -> Session:
         """Database session property"""
-        return self.get_session()
-
-    def get_session(self) -> Session:
-        """Get a new database session"""
         return Session(self.engine)
