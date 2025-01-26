@@ -46,3 +46,8 @@ async def register_user(user: User, session: Session = Depends(dal.get_session))
     session.add(user)
     session.commit()
     return UserPublic(username=user.username, email=user.email)
+
+
+@router.post("/token")
+async def get_token():
+    pass
