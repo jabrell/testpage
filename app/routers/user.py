@@ -2,12 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from passlib.hash import pbkdf2_sha256
 from sqlmodel import Session, select
 
-from app.database_access import DatabaseAccessLayer
+from app.database_access import get_db_session
 from app.models.user import User, UserPublic
 
 router = APIRouter(prefix="/user", tags=["user"])
-
-dal = DatabaseAccessLayer()
 
 
 def hash_password(password: str) -> str:
@@ -28,7 +26,7 @@ def verify_password(password: str, hash: str) -> bool:
     },
 )
 async def register_user(
-    user: User, session: Session = Depends(dal.get_session)
+    user: User, session: Session = Depends(get_db_session)
 ) -> UserPublic:
     """Register a new user given the name, email, and password"""
     # ensure that no user with the same name or email exists
