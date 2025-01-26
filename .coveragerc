@@ -1,0 +1,11 @@
+[run]
+branch = True
+
+[report]
+show_missing = True
+omit =
+    app/tests/*
+    app/flaskapp/*
+exclude_lines =
+    @abstractmethod
+    @abc.abstractmethod

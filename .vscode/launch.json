@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Main Dev",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "main_dev.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python Debugger: FastAPI",
             "type": "debugpy",
             "request": "launch",

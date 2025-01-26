@@ -1,2 +1,11 @@
 fastapi[standard]
+sqlmodel
+pytest
+psycopg2-binary
+pydantic[email]
+requests
+passlib[bcrypt]
+
+coverage
 pre-commit
+faker
