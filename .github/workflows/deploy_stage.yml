@@ -10,8 +10,16 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  check_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch
+        if: github.base_ref == 'stage' && github.head_ref != 'main'
+        run: |
+          echo "ERROR: You can only merge to stage from main."
+          exit 1
+          
   build-and-push-image:
-    if: contains(github.event.head_commit.message, 'build')
     runs-on: ubuntu-latest
     permissions:
       contents: read
