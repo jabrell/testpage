@@ -10,11 +10,11 @@ router = APIRouter(prefix="/user", tags=["user"])
 dal = DatabaseAccessLayer()
 
 
-def hash_password(password: str):
+def hash_password(password: str) -> str:
     return pbkdf2_sha256.hash(password)
 
 
-def verify_password(password: str, hash: str):
+def verify_password(password: str, hash: str) -> bool:
     return pbkdf2_sha256.verify(password, hash)
 
 
