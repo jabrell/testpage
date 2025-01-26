@@ -2,8 +2,8 @@ repos:
   -   repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v5.0.0
       hooks:
-      -   id: trailing-whitespace
-      -   id: check-yaml
+      - id: trailing-whitespace
+      - id: check-yaml
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.9.3
