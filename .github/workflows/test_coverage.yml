@@ -27,7 +27,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=testpage --cov-report=xml --cov-report=term
+          pytest --cov-report=xml --cov-report=term
 
       - name: Generate coverage badge
         run: |
