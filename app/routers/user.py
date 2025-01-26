@@ -10,11 +10,11 @@ router = APIRouter(prefix="/user", tags=["user"])
 dal = DatabaseAccessLayer()
 
 
-def hash_password(password: str):
+def hash_password(password: str) -> str:
     return pbkdf2_sha256.hash(password)
 
 
-def verify_password(password: str, hash: str):
+def verify_password(password: str, hash: str) -> bool:
     return pbkdf2_sha256.verify(password, hash)
 
 
@@ -27,7 +27,9 @@ def verify_password(password: str, hash: str):
         status.HTTP_201_CREATED: {"description": "User created"},
     },
 )
-async def register_user(user: User, session: Session = Depends(dal.get_session)):
+async def register_user(
+    user: User, session: Session = Depends(dal.get_session)
+) -> UserPublic:
     """Register a new user given the name, email, and password"""
     # ensure that no user with the same name or email exists
     res = session.exec(select(User).filter(User.username == user.username))
