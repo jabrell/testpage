@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "ERROR: You can only merge to stage from main."
           exit 1
-          
+
   build-and-push-image:
     runs-on: ubuntu-latest
     permissions:
