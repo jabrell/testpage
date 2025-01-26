@@ -1,9 +1,10 @@
 name: Deploy to Stage
 
 on:
-  workflow_dispatch:
   push:
     branches: ['stage']
+  pull_request:
+  workflow_dispatch: # Enables manual triggering of the workflow
 
 env:
   REGISTRY: ghcr.io
