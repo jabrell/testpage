@@ -1,67 +1,81 @@
 import faker
-import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine
 
-from app.database_access import get_db_session
+from app.api.routes.user import router as user_router
+from app.core.config import settings
 from app.main import app
 from app.models import User
 
+url_user = f"{settings.API_V1_STR}{user_router.prefix}"
 client = TestClient(app)
 
-db_url = "sqlite:///:memory:"
-test_engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-SQLModel.metadata.create_all(test_engine)
 
-
-def override_get_db_session():
-    session = Session(test_engine)
-    yield session
-    session.close()
-
-
-app.dependency_overrides[get_db_session] = override_get_db_session
-
-
-@pytest.fixture(scope="module")
-def user_list(nr_users: int = 5) -> list[User]:
-    """
-    Fixture to get a list of test users
-    """
-
-    return [
-        User(
-            id=i,
-            username=faker.Faker().user_name(),
-            email=faker.Faker().email(),
-            password=faker.Faker().password(),
-        )
-        for i in range(nr_users)
-    ]
-
-
-def test_register_user(user_list: list[User], clear_users):
-    user = user_list[0]
+def test_register_user():
+    route_register = f"{url_user}/register"
+    user = User(
+        id=0,
+        username=faker.Faker().user_name(),
+        email=faker.Faker().email(),
+        password=faker.Faker().password(),
+    )
     user_pub = user.get_public()
-
     # create user
-    response = client.post("/user/register", json=user.model_dump())
+    response = client.post(route_register, json=user.model_dump())
     assert response.status_code == status.HTTP_201_CREATED
     assert response.json() == user_pub.model_dump()
 
     # creating the same user again raises an error
-    response = client.post("/user/register", json=user.model_dump())
+    response = client.post(route_register, json=user.model_dump())
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()["detail"] == "User with the same name already exists"
 
-    # alter the name and submitting should also raise an error
+    # alter the name and submitting should also raise an error due to duplicated
+    # mail
     user.username = faker.Faker().user_name()
-    response = client.post("/user/register", json=user.model_dump())
+    response = client.post(route_register, json=user.model_dump())
     assert response.status_code == status.HTTP_409_CONFLICT
     assert response.json()["detail"] == "User with the same email already exists"
+
+
+def test_token():
+    route_register = f"{url_user}/register"
+    route_token = f"{url_user}/token"
+    user = user = User(
+        id=1,
+        username=faker.Faker().user_name(),
+        email=faker.Faker().email(),
+        password=faker.Faker().password(),
+    )
+    user_pub = user.get_public()
+
+    # create user
+    response = client.post(route_register, json=user.model_dump())
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.json() == user_pub.model_dump()
+
+    # get token with username and password
+    response = client.post(
+        route_token, data={"username": user.username, "password": user.password}
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert "access_token" in response.json()
+    assert "token_type" in response.json()
+    assert response.json()["token_type"] == "bearer"
+
+    # get token with email and password
+    response = client.post(
+        route_token, data={"username": user.email, "password": user.password}
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert "access_token" in response.json()
+    assert "token_type" in response.json()
+    assert response.json()["token_type"] == "bearer"
+
+    # get token with wrong password
+    response = client.post(
+        route_token,
+        data={"username": user.username, "password": faker.Faker().password()},
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json()["detail"] == "Incorrect username or password"
