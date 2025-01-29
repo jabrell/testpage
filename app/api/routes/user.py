@@ -98,7 +98,6 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    print("here")
     return Token(access_token="token", token_type="bearer")
     # user = authenticate_user(fake_users_db, form_data.username, form_data.password)
     # if not user:
