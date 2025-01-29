@@ -2,38 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from passlib.hash import pbkdf2_sha256
 from sqlmodel import Session, select
 
 from app.api.deps import SessionDep
+from app.core.security import hash_password, verify_password
 from app.models.user import Token, User, UserCreate, UserPublic
 
 router = APIRouter(prefix="/user", tags=["user"])
-
-
-def hash_password(password: str) -> str:
-    """Hash the password using pbkdf2_sha256
-
-    Args:
-        password (str): password to hash
-
-    Returns:
-        str: hashed password
-    """
-    return pbkdf2_sha256.hash(password)
-
-
-def verify_password(password: str, hash: str) -> bool:
-    """Authenticate the user with the given password
-
-    Args:
-        password (str): password to authenticate
-        hash (str): hashed password
-
-    Returns:
-        bool: True if the password is correct, False otherwise
-    """
-    return pbkdf2_sha256.verify(password, hash)
 
 
 def get_user(username: str, session: Session) -> User:
