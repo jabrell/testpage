@@ -2,31 +2,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session, select
+from sqlmodel import select
 
 from app.api.deps import SessionDep
-from app.core.security import hash_password, verify_password
-from app.models.user import Token, User, UserCreate, UserPublic
+from app.core.exceptions import InvalidPassword, UserNotFound
+from app.core.security import authenticate_user, create_access_token, hash_password
+from app.models.security import Token
+from app.models.user import User, UserCreate, UserPublic
 
 router = APIRouter(prefix="/user", tags=["user"])
-
-
-def get_user(username: str, session: Session) -> User:
-    """Get user by username or password
-
-    Args:
-        username (str): username of the user
-        session (Session): db session object
-
-    Returns:
-        User: user object if found, None otherwise
-    """
-    # try to get the user by username
-    res = session.exec(select(User).filter(User.username == username)).first()
-    # if not found, try to get the user by email
-    if not res:
-        res = session.exec(select(User).filter(User.email == username)).first()
-    return res
 
 
 @router.post(
@@ -61,46 +45,45 @@ async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
     return UserPublic(username=user.username, email=user.email)
 
 
-@router.post("/token")
+@router.post(
+    "/token",
+    response_model=Token,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Incorrect username or password"}
+    },
+)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: SessionDep,
 ) -> Token:
-    user = get_user(form_data.username, session)
-    if not user or not verify_password(form_data.password, user.password):
+    try:
+        # add logging
+        _ = authenticate_user(form_data.username, form_data.password, session)
+    except (UserNotFound, InvalidPassword):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return Token(access_token="token", token_type="bearer")
-    # user = authenticate_user(fake_users_db, form_data.username, form_data.password)
-    # if not user:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_401_UNAUTHORIZED,
-    #         detail="Incorrect username or password",
-    #         headers={"WWW-Authenticate": "Bearer"},
-    #     )
-    # access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    # access_token = create_access_token(
-    #     data={"sub": user.username}, expires_delta=access_token_expires
-    # )
-    # return Token(access_token=access_token, token_type="bearer")
+    token = create_access_token(form_data.username)
+    return Token(access_token=token, token_type="bearer")
 
 
-@router.post("/delete")
-async def delete_user(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    session: SessionDep,
-) -> UserPublic:
-    user = get_user(form_data.username, session)
-    if not user or not verify_password(form_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    pub_user = user.get_public()
-    session.delete(user)
-    session.commit()
-    return pub_user
+# TODO that should be secured
+# @router.post("/delete")
+# async def delete_user(
+#     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+#     session: SessionDep,
+# ) -> UserPublic:
+#     user = get_user(form_data.username, session)
+#     if not user or not verify_password(form_data.password, user.password):
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect username or password",
+#             headers={"WWW-Authenticate": "Bearer"},
+#         )
+#     pub_user = user.get_public()
+#     session.delete(user)
+#     session.commit()
+#     return pub_user

@@ -38,7 +38,7 @@ def test_register_user():
     assert response.json()["detail"] == "User with the same email already exists"
 
 
-def test_token():
+def test_get_token():
     route_register = f"{url_user}/register"
     route_token = f"{url_user}/token"
     user = user = User(
@@ -48,6 +48,13 @@ def test_token():
         password=faker.Faker().password(),
     )
     user_pub = user.get_public()
+
+    # token with wrong username raises error
+    response = client.post(
+        route_token,
+        data={"username": "im_a_wrong_user", "password": user.password},
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     # create user
     response = client.post(route_register, json=user.model_dump())
