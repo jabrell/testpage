@@ -3,8 +3,11 @@ sqlmodel
 pytest
 psycopg2-binary
 pydantic[email]
+pydantic-settings
 requests
 passlib[bcrypt]
+pyjwt
+tenacity
 
 coverage
 pre-commit

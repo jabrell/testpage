@@ -1,22 +1,15 @@
 from datetime import datetime
 
-from pydantic import EmailStr
 from sqlmodel import TIMESTAMP, Column, Field, SQLModel, text
 
-__all__ = ["User", "UserPublic", "UserCreate"]
+# todo mixin for metadata
 
 
-class UserPublic(SQLModel):
-    username: str
-    email: EmailStr
-
-
-class UserCreate(UserPublic):
-    password: str
-
-
-class User(UserCreate, table=True):
+class UserGroup(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
+    name: str
+    description: str
+
     created_at: datetime | None = Field(
         sa_column=Column(
             TIMESTAMP(timezone=True),
@@ -33,5 +26,5 @@ class User(UserCreate, table=True):
         )
     )
 
-    def get_public(self):
-        return UserPublic(username=self.username, email=self.email)
+    def __repr__(self):
+        return f"<UserGroup {self.name}>"

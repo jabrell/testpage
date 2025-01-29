@@ -8,3 +8,11 @@ We use (pre-commit hooks)[https://pre-commit.com/] for several actions mostly us
 pre-commit install
 pre-commit run --all-files
 ``
+
+## Testing and coverage
+
+``
+coverage run -m pytest
+coverage report
+``
+
