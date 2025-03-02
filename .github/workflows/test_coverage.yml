@@ -23,10 +23,12 @@ jobs:
     - uses: pre-commit/action@v3.0.1
     - name: Install dependencies
       run: |
+        cd backend
         python -m pip install --upgrade pip
         pip install ruff pytest coverage
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test and coverage with pytest
       run: |
+        cd backend
         coverage run -m pytest
         coverage report
