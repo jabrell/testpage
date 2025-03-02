@@ -1,3 +1,4 @@
 t.Docker*
 _delete/*
 test.db
+.coverage
