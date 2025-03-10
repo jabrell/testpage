@@ -2,12 +2,13 @@
 
 from fastapi import FastAPI
 
-from app.routers import user_router
+from app.api.main import api_router
+from app.core.config import settings
 
 app = FastAPI()
 
 # include routes
-app.include_router(user_router)
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")

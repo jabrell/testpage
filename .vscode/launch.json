@@ -9,6 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "main_dev.py",
+            "cwd": "${workspaceFolder}/backend",
             "console": "integratedTerminal"
         },
         {
@@ -17,10 +18,10 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "main:app",
+                "app.main:app",
                 "--reload",
-                "--app-dir=./app"
             ],
+            "cwd": "${workspaceFolder}/backend",
             "jinja": true
         }
     ]

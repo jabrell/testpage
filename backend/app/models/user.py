@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import EmailStr
 from sqlmodel import TIMESTAMP, Column, Field, SQLModel, text
 
-__all__ = ["User"]
+__all__ = ["User", "UserPublic", "UserCreate"]
 
 
 class UserPublic(SQLModel):
@@ -11,9 +11,12 @@ class UserPublic(SQLModel):
     email: EmailStr
 
 
-class User(UserPublic, table=True):
-    id: int = Field(default=None, primary_key=True)
+class UserCreate(UserPublic):
     password: str
+
+
+class User(UserCreate, table=True):
+    id: int = Field(default=None, primary_key=True)
     created_at: datetime | None = Field(
         sa_column=Column(
             TIMESTAMP(timezone=True),
