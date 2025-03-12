@@ -1,14 +1,20 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlmodel import TIMESTAMP, Column, Field, SQLModel, text
+from sqlmodel import TIMESTAMP, Column, Field, Relationship, SQLModel, text
 
+from .mixins import TimestampMixin
+
+if TYPE_CHECKING:
+    from .user import User
 # todo mixin for metadata
 
 
-class UserGroup(SQLModel, table=True):
+class UserGroup(SQLModel, table=True, mixins=[TimestampMixin]):
     id: int = Field(default=None, primary_key=True)
     name: str
     description: str
+    users: list["User"] = Relationship(back_populates="usergroup")
 
     created_at: datetime | None = Field(
         sa_column=Column(
@@ -17,7 +23,7 @@ class UserGroup(SQLModel, table=True):
             server_default=text("CURRENT_TIMESTAMP"),
         )
     )
-    updated_datetime: datetime | None = Field(
+    updated_at: datetime | None = Field(
         sa_column=Column(
             TIMESTAMP(timezone=True),
             nullable=False,

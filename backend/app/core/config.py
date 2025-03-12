@@ -31,11 +31,11 @@ class Settings(BaseSettings):
 
     # FIXME: Move to .env file
     # Postges settings
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_PORT: int = 5433
-    POSTGRES_USER: str = "admin"
-    POSTGRES_PASSWORD: str = "admin_password"
-    POSTGRES_DB: str = "users"
+    POSTGRES_SERVER: str
+    POSTGRES_PORT: int
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
 
     @computed_field  # type: ignore[prop-decorator]
     @property
