@@ -25,6 +25,7 @@ router = APIRouter(prefix="/user", tags=["user"])
 async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
     """Register a new user given the name, email, and password"""
     # ensure that no user with the same name or email exists
+    # TODO add logging
     res = session.exec(select(User).filter(User.username == user.username))
     if res.first():
         raise HTTPException(
@@ -48,9 +49,15 @@ async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
             status_code=status.HTTP_404_NOT_FOUND, detail="User group not found"
         )
     db_user.usergroup_id = usergroup_id
-    print(db_user)
-    session.add(db_user)
-    session.commit()
+    try:
+        session.add(db_user)
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error while creating user",
+        )
     return UserPublic(username=user.username, email=user.email)
 
 
@@ -67,7 +74,7 @@ async def login_for_access_token(
     session: SessionDep,
 ) -> Token:
     try:
-        # add logging
+        # TODO add logging
         _ = authenticate_user(form_data.username, form_data.password, session)
     except (UserNotFound, InvalidPassword):
         raise HTTPException(
