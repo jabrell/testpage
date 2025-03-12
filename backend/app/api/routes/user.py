@@ -23,7 +23,8 @@ router = APIRouter(prefix="/user", tags=["user"])
     },
 )
 async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
-    """Register a new user given the name, email, and password"""
+    """Register a new user given the name, email, and password in the standard
+    user group."""
     # ensure that no user with the same name or email exists
     # TODO add logging
     res = session.exec(select(User).filter(User.username == user.username))
@@ -73,6 +74,7 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: SessionDep,
 ) -> Token:
+    """Get JWT access token for a user."""
     try:
         # TODO add logging
         _ = authenticate_user(form_data.username, form_data.password, session)
