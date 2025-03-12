@@ -8,7 +8,7 @@ from app.api.deps import SessionDep
 from app.core.exceptions import InvalidPassword, UserNotFound
 from app.core.security import authenticate_user, create_access_token, hash_password
 from app.models.security import Token
-from app.models.user import User, UserCreate, UserPublic
+from app.models.user import User, UserCreate, UserGroup, UserPublic
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -39,7 +39,16 @@ async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
         )
     user.password = hash_password(user.password)
     db_user = User(**user.model_dump())
-
+    # get user group and assign it to the user
+    usergroup_id = session.exec(
+        select(UserGroup.id).filter(UserGroup.name == "standard")
+    ).first()
+    if not usergroup_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User group not found"
+        )
+    db_user.usergroup_id = usergroup_id
+    print(db_user)
     session.add(db_user)
     session.commit()
     return UserPublic(username=user.username, email=user.email)

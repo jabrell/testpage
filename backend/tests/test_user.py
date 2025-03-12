@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from app.api.routes.user import router as user_router
 from app.core.config import settings
 from app.main import app
-from app.models import User
+from app.models import UserCreate
 
 url_user = f"{settings.API_V1_STR}{user_router.prefix}"
 client = TestClient(app)
@@ -13,7 +13,7 @@ client = TestClient(app)
 
 def test_register_user():
     route_register = f"{url_user}/register"
-    user = User(
+    user = UserCreate(
         id=0,
         username=faker.Faker().user_name(),
         email=faker.Faker().email(),
@@ -41,7 +41,7 @@ def test_register_user():
 def test_get_token():
     route_register = f"{url_user}/register"
     route_token = f"{url_user}/token"
-    user = user = User(
+    user = UserCreate(
         id=1,
         username=faker.Faker().user_name(),
         email=faker.Faker().email(),

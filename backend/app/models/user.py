@@ -14,7 +14,9 @@ class UserPublic(SQLModel):
 
 class UserCreate(UserPublic):
     password: str
-    usergroup_id: int
+
+    def get_public(self):
+        return UserPublic(username=self.username, email=self.email)
 
 
 class User(UserCreate, table=True, mixins=[TimestampMixin]):
@@ -23,4 +25,6 @@ class User(UserCreate, table=True, mixins=[TimestampMixin]):
     usergroup: UserGroup = Relationship(back_populates="users")
 
     def get_public(self):
-        return UserPublic(username=self.username, email=self.email)
+        return UserPublic(
+            username=self.username, email=self.email, usergroup=self.usergroup.name
+        )
