@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import select
 
-from app.api.deps import SessionDep
+from app.api.deps import SessionDep, is_admin_user
 from app.core.exceptions import InvalidPassword, UserNotFound
 from app.core.security import authenticate_user, create_access_token, hash_password
 from app.models.security import Token
@@ -21,6 +21,7 @@ router = APIRouter(prefix="/user", tags=["user"])
         status.HTTP_409_CONFLICT: {"description": "User already exists"},
         status.HTTP_201_CREATED: {"description": "User created"},
     },
+    dependencies=[Depends(is_admin_user)],
 )
 async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
     """Register a new user given the name, email, and password in the standard
@@ -63,7 +64,7 @@ async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
 
 
 @router.post(
-    "/token",
+    "/login",
     response_model=Token,
     status_code=status.HTTP_200_OK,
     responses={

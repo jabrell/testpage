@@ -8,81 +8,107 @@ from app.main import app
 from app.models import UserCreate
 
 url_user = f"{settings.API_V1_STR}{user_router.prefix}"
+url_register = f"{url_user}/register"
+url_login = f"{url_user}/login"
 client = TestClient(app)
 
 
-def test_register_user():
-    route_register = f"{url_user}/register"
+def test_get_token():
+    login = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    response = client.post(url_login, data=login)
+    tokens = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert "access_token" in tokens
+    assert tokens["access_token"]
+    assert response.json()["token_type"] == "bearer"
+
+
+def test_get_token_by_mail():
+    login = {
+        "username": settings.FIRST_SUPERUSER_MAIL,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    response = client.post(url_login, data=login)
+    tokens = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert "access_token" in tokens
+    assert tokens["access_token"]
+    assert response.json()["token_type"] == "bearer"
+
+
+def test_get_token_wrong_password():
+    login = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": "wrong_password",
+    }
+    response = client.post(url_login, data=login)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_register_user(admin_token_header: dict[str, str]):
     user = UserCreate(
         id=0,
         username=faker.Faker().user_name(),
         email=faker.Faker().email(),
         password=faker.Faker().password(),
     )
-    user_pub = user.get_public()
-    # create user
-    response = client.post(route_register, json=user.model_dump())
+    response = client.post(
+        url_register, json=user.model_dump(), headers=admin_token_header
+    )
     assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == user_pub.model_dump()
-
-    # creating the same user again raises an error
-    response = client.post(route_register, json=user.model_dump())
-    assert response.status_code == status.HTTP_409_CONFLICT
-    assert response.json()["detail"] == "User with the same name already exists"
-
-    # alter the name and submitting should also raise an error due to duplicated
-    # mail
-    user.username = faker.Faker().user_name()
-    response = client.post(route_register, json=user.model_dump())
-    assert response.status_code == status.HTTP_409_CONFLICT
-    assert response.json()["detail"] == "User with the same email already exists"
+    assert response.json() == user.get_public().model_dump()
 
 
-def test_get_token():
-    route_register = f"{url_user}/register"
-    route_token = f"{url_user}/token"
+def test_register_user_unauthorized(standard_token_header: dict[str, str]):
     user = UserCreate(
-        id=1,
+        id=0,
         username=faker.Faker().user_name(),
         email=faker.Faker().email(),
         password=faker.Faker().password(),
     )
-    user_pub = user.get_public()
-
-    # token with wrong username raises error
     response = client.post(
-        route_token,
-        data={"username": "im_a_wrong_user", "password": user.password},
+        url_register, json=user.model_dump(), headers=standard_token_header
     )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_register_user_notoken():
+    user = UserCreate(
+        id=0,
+        username=faker.Faker().user_name(),
+        email=faker.Faker().email(),
+        password=faker.Faker().password(),
+    )
+    response = client.post(url_register, json=user.model_dump())
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    # create user
-    response = client.post(route_register, json=user.model_dump())
-    assert response.status_code == status.HTTP_201_CREATED
-    assert response.json() == user_pub.model_dump()
 
-    # get token with username and password
-    response = client.post(
-        route_token, data={"username": user.username, "password": user.password}
+def test_register_user_name_exists(admin_token_header: dict[str, str]):
+    user = UserCreate(
+        id=0,
+        username=settings.FIRST_SUPERUSER,
+        email=settings.FIRST_SUPERUSER_MAIL,
+        password=settings.FIRST_SUPERUSER_PASSWORD,
     )
-    assert response.status_code == status.HTTP_200_OK
-    assert "access_token" in response.json()
-    assert "token_type" in response.json()
-    assert response.json()["token_type"] == "bearer"
+    response = client.post(
+        url_register, json=user.model_dump(), headers=admin_token_header
+    )
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert response.json()["detail"] == "User with the same name already exists"
 
-    # get token with email and password
-    response = client.post(
-        route_token, data={"username": user.email, "password": user.password}
-    )
-    assert response.status_code == status.HTTP_200_OK
-    assert "access_token" in response.json()
-    assert "token_type" in response.json()
-    assert response.json()["token_type"] == "bearer"
 
-    # get token with wrong password
-    response = client.post(
-        route_token,
-        data={"username": user.username, "password": faker.Faker().password()},
+def test_register_user_email_exists(admin_token_header: dict[str, str]):
+    user = UserCreate(
+        id=0,
+        username=faker.Faker().user_name(),
+        email=settings.FIRST_SUPERUSER_MAIL,
+        password=faker.Faker().password(),
     )
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert response.json()["detail"] == "Incorrect username or password"
+    response = client.post(
+        url_register, json=user.model_dump(), headers=admin_token_header
+    )
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert response.json()["detail"] == "User with the same email already exists"
