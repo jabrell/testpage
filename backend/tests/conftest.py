@@ -2,14 +2,14 @@ import pathlib
 from typing import Generator
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine, select
-from fastapi.testclient import TestClient
 
 from app.api.deps import get_db
-from app.main import app
 from app.core.config import settings
 from app.core.security import hash_password
+from app.main import app
 
 # import all models to create tables
 from app.models import *  # noqa

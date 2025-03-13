@@ -1,16 +1,16 @@
-from typing import Annotated, Generator
 import logging
+from typing import Annotated, Generator
 
-from fastapi import Depends, status, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 from sqlmodel import Session, select
 
-from app.core.db import engine
 from app.core.config import settings
-from app.models import User, TokenPayload
+from app.core.db import engine
+from app.models import TokenPayload, User
 
 
 def get_db() -> Generator[Session, None, None]:

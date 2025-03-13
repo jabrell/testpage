@@ -1,5 +1,6 @@
-from app.core.config import settings
 from fastapi.testclient import TestClient
+
+from app.core.config import settings
 
 url_login = f"{settings.API_V1_STR}/user/login"
 
