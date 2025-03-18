@@ -8,12 +8,15 @@ __all__ = ["User", "UserPublic", "UserCreate"]
 
 
 class UserPublic(SQLModel):
+    id: int | None = None
     username: str
     email: EmailStr
 
 
 class UserCreate(UserPublic):
+    id: int | None = None
     password: str
+    usergroup_name: str = "standard"
 
     def get_public(self):
         return UserPublic(username=self.username, email=self.email)
@@ -26,5 +29,8 @@ class User(UserCreate, table=True, mixins=[TimestampMixin]):
 
     def get_public(self):
         return UserPublic(
-            username=self.username, email=self.email, usergroup=self.usergroup.name
+            id=self.id,
+            username=self.username,
+            email=self.email,
+            usergroup=self.usergroup.name,
         )

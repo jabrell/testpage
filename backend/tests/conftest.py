@@ -8,8 +8,8 @@ from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.api.deps import get_db
 from app.core.config import settings
-from app.core.security import hash_password
 from app.main import app
+from app.core.security import hash_password
 
 # import all models to create tables
 from app.models import *  # noqa
@@ -73,6 +73,12 @@ def overwrite_get_db() -> Generator[Session, None, None]:
 @pytest.fixture(scope="session", autouse=True)
 def override_db_dependency():
     app.dependency_overrides[get_db] = overwrite_get_db
+
+
+@pytest.fixture(scope="session", autouse=True)
+def db() -> Generator[Session, None, None]:
+    with Session(test_engine) as session:
+        yield session
 
 
 @pytest.fixture(scope="module")

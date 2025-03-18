@@ -3,11 +3,7 @@ from typing import Any
 
 import jwt
 from passlib.hash import pbkdf2_sha256
-from sqlmodel import Session
 
-from app.api.crud.user import get_user
-from app.core.exceptions import InvalidPassword, UserNotFound
-from app.models.user import User
 
 from .config import settings
 from .exceptions import InvalidTokenError
@@ -53,33 +49,6 @@ def decode_access_token(token: str) -> dict[str, Any] | None:
         raise InvalidTokenError("Token expired")
     except jwt.InvalidTokenError:
         raise InvalidTokenError("Token invalid")
-
-
-def authenticate_user(
-    username: str,
-    password: str,
-    session: Session,
-) -> User:
-    """Authenticate the user using password.
-
-    Args:
-        session (Session): The database session.
-        username (str): The username to authenticate. Email works as well.
-        password (str): The password to authenticate.
-
-    Returns:
-        User | None: The user object if authenticated, else None.
-
-    Raises:
-        UserNotFound: If the user is not found in the database.
-        InvalidPassword: If the password is incorrect.
-    """
-    user = get_user(username=username, session=session)
-    if not user:
-        raise UserNotFound()
-    if not verify_password(password, user.password):
-        raise InvalidPassword(user.username)
-    return user
 
 
 def hash_password(password: str) -> str:

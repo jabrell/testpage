@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.core.config import settings
 
-url_login = f"{settings.API_V1_STR}/user/login"
+url_login = f"{settings.API_V1_STR}/login/access_token"
 
 
 def get_admin_header(client: TestClient) -> dict[str, str]:
@@ -13,7 +13,7 @@ def get_admin_header(client: TestClient) -> dict[str, str]:
     }
     response = client.post(url_login, data=login)
     tokens = response.json()
-    a_token = tokens["access_token"]
+    a_token = tokens.get("access_token")
     return {"Authorization": f"Bearer {a_token}"}
 
 
@@ -25,5 +25,5 @@ def get_standard_header(client: TestClient) -> dict[str, str]:
     }
     response = client.post(url_login, data=login)
     tokens = response.json()
-    a_token = tokens["access_token"]
+    a_token = tokens.get("access_token")
     return {"Authorization": f"Bearer {a_token}"}
