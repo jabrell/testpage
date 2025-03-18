@@ -10,17 +10,17 @@ logging_config = {
     },
     "handlers": {
         "api_handler": {
-            "class": "logging.FileHandler",
+            "class": "logging.StreamHandler",
             "stream": sys.stdout,
             "formatter": "standard",
         },
         "storage_handler": {
-            "class": "logging.FileHandler",
+            "class": "logging.StreamHandler",
             "stream": sys.stdout,
             "formatter": "standard",
         },
         "catalog_handler": {
-            "class": "logging.FileHandler",
+            "class": "logging.StreamHandler",
             "stream": sys.stdout,
             "formatter": "standard",
         },
