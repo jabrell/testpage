@@ -1,5 +1,6 @@
 import logging
-from typing import Annotated, Generator
+from collections.abc import Generator
+from typing import Annotated
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -34,7 +35,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
-        )
+        ) from None
     user = select(User).where(User.username == token_data.sub)
     user = session.exec(user).first()
     if not user:

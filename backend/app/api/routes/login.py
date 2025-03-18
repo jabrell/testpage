@@ -35,6 +35,6 @@ async def login_for_access_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from None
     token = create_access_token(form_data.username)
     return Token(access_token=token, token_type="bearer")
