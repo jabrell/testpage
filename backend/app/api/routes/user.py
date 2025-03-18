@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 
-from app.api.deps import SessionDep, is_admin_user
-from app.models.user import UserCreate, UserGroup, UserPublic
-from app.api.crud.user import get_user
 from app.api.crud.user import create_user as create_user_crud
 from app.api.crud.user import delete_user as delete_user_crud
+from app.api.crud.user import get_user
+from app.api.deps import SessionDep, is_admin_user
+from app.models.user import UserCreate, UserGroup, UserPublic
 
 router = APIRouter(prefix="/user", tags=["user"])
 

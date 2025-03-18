@@ -2,8 +2,8 @@ import pytest
 from sqlmodel import Session, select
 
 from app.api.crud.user import authenticate_user, create_user, delete_user, get_user
-from app.core.exceptions import UserNotFound, InvalidPassword
 from app.core.config import settings
+from app.core.exceptions import InvalidPassword, UserNotFound
 from app.models.user import UserCreate, UserGroup
 
 

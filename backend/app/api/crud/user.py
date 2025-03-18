@@ -1,8 +1,8 @@
-from sqlmodel import Session, select, or_
+from sqlmodel import Session, or_, select
 
-from app.models.user import User, UserCreate
+from app.core.exceptions import InvalidPassword, UserNotFound
 from app.core.security import hash_password, verify_password
-from app.core.exceptions import UserNotFound, InvalidPassword
+from app.models.user import User, UserCreate
 
 
 def get_user(*, username: str, session: Session) -> User:

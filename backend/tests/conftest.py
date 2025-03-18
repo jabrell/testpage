@@ -8,8 +8,8 @@ from sqlmodel import Session, SQLModel, create_engine, select
 
 from app.api.deps import get_db
 from app.core.config import settings
-from app.main import app
 from app.core.security import hash_password
+from app.main import app
 
 # import all models to create tables
 from app.models import *  # noqa

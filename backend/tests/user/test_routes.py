@@ -2,8 +2,8 @@ import faker
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from app.api.routes.user import router as user_router
 from app.api.routes.login import router as login_router
+from app.api.routes.user import router as user_router
 from app.core.config import settings
 from app.main import app
 from app.models import UserCreate

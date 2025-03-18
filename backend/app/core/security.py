@@ -4,7 +4,6 @@ from typing import Any
 import jwt
 from passlib.hash import pbkdf2_sha256
 
-
 from .config import settings
 from .exceptions import InvalidTokenError
 

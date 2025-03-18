@@ -3,11 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app.api.crud.user import authenticate_user
 from app.api.deps import SessionDep
 from app.core.exceptions import InvalidPassword, UserNotFound
 from app.core.security import create_access_token
-from app.api.crud.user import authenticate_user
-
 from app.models import Token
 
 router = APIRouter(prefix="/login", tags=["login"])
