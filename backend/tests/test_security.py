@@ -22,7 +22,6 @@ def test_create_access_token():
 
     # sending expired token raises InvalidTokenError
     token = create_access_token("test", expires_delta=timedelta(milliseconds=1))
-    print("here")
     with pytest.raises(InvalidTokenError):
         decode_access_token(token)
 

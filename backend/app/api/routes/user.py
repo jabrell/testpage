@@ -1,89 +1,85 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import select
 
-from app.api.deps import SessionDep
-from app.core.exceptions import InvalidPassword, UserNotFound
-from app.core.security import authenticate_user, create_access_token, hash_password
-from app.models.security import Token
-from app.models.user import User, UserCreate, UserPublic
+from app.api.crud.user import create_user as create_user_crud
+from app.api.crud.user import delete_user as delete_user_crud
+from app.api.crud.user import get_user
+from app.api.deps import SessionDep, is_admin_user
+from app.models.user import UserCreate, UserGroup, UserPublic
 
 router = APIRouter(prefix="/user", tags=["user"])
 
 
 @router.post(
-    "/register",
+    "/create",
     response_model=UserPublic,
     status_code=status.HTTP_201_CREATED,
     responses={
         status.HTTP_409_CONFLICT: {"description": "User already exists"},
+        status.HTTP_404_NOT_FOUND: {"description": "User group not found"},
         status.HTTP_201_CREATED: {"description": "User created"},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Error while creating user"
+        },
     },
+    dependencies=[Depends(is_admin_user)],
 )
-async def register_user(user: UserCreate, session: SessionDep) -> UserPublic:
-    """Register a new user given the name, email, and password"""
+async def create_user(*, user: UserCreate, session: SessionDep) -> UserPublic:
+    """Create a new user. Only admin users can create new users.
+
+    Args:
+        user (UserCreate): User data.
+        session (SessionDep): Database session.
+
+    Returns:
+        UserPublic: User data.
+    """
     # ensure that no user with the same name or email exists
-    res = session.exec(select(User).filter(User.username == user.username))
-    if res.first():
+    # TODO add logging
+    # check whether the user already exists
+    if get_user(username=user.username, session=session):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with the same name already exists",
         )
-    res = session.exec(select(User).filter(User.email == user.email))
-    if res.first():
+    if get_user(username=user.email, session=session):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with the same email already exists",
         )
-    user.password = hash_password(user.password)
-    db_user = User(**user.model_dump())
+    # check whether the user group exists
+    usergroup_id = session.exec(
+        select(UserGroup.id).filter(UserGroup.name == user.usergroup_name)
+    ).first()
+    if not usergroup_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User group not found"
+        )
+    # create the user
+    user = create_user_crud(user=user, usergroup_id=usergroup_id, session=session)
+    return user.get_public()
 
-    session.add(db_user)
-    session.commit()
-    return UserPublic(username=user.username, email=user.email)
 
-
-@router.post(
-    "/token",
-    response_model=Token,
+@router.delete(
+    "/{user_id}",
     status_code=status.HTTP_200_OK,
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Incorrect username or password"}
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_200_OK: {"description": "User deleted"},
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {
+            "description": "Error while deleting user"
+        },
     },
+    dependencies=[Depends(is_admin_user)],
 )
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+async def delete_user(
+    user_id: int,
     session: SessionDep,
-) -> Token:
-    try:
-        # add logging
-        _ = authenticate_user(form_data.username, form_data.password, session)
-    except (UserNotFound, InvalidPassword):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    token = create_access_token(form_data.username)
-    return Token(access_token=token, token_type="bearer")
+) -> None:
+    """Delete a user. Only admin users can delete users.
 
-
-# TODO that should be secured
-# @router.post("/delete")
-# async def delete_user(
-#     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-#     session: SessionDep,
-# ) -> UserPublic:
-#     user = get_user(form_data.username, session)
-#     if not user or not verify_password(form_data.password, user.password):
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Incorrect username or password",
-#             headers={"WWW-Authenticate": "Bearer"},
-#         )
-#     pub_user = user.get_public()
-#     session.delete(user)
-#     session.commit()
-#     return pub_user
+    Args:
+        user_id(int): Identifier of the user
+        session (SessionDep): Database session.
+    """
+    delete_user_crud(user_id=user_id, session=session)

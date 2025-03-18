@@ -1,7 +1,7 @@
 import jwt  # noqa
 
 from app.core.config import settings  # noqa
-from app.core.security import create_access_token, decode_access_token
+from app.initial_data import main
 
 if __name__ == "__main__":
     # JWT_ALGORITHM = "HS256"
@@ -19,8 +19,9 @@ if __name__ == "__main__":
     #     return encoded_jwt
 
     # timedelta(minutes=settings.JWT_TIMEDELTA)
-    token = create_access_token("test")
-    returned = decode_access_token(token)
-    print(returned)
-    decode_access_token("test")
+    # token = create_access_token("test")
+    # returned = decode_access_token(token)
+    # print(returned)
+    # decode_access_token("test")
+    main()
     print("here")
