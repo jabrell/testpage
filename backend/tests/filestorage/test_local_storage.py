@@ -23,7 +23,7 @@ def test_save_and_load(storage: LocalFileStorage):
     file_path = storage.save(key, data)
 
     # Check if file exists
-    assert os.path.exists(file_path)
+    assert os.path.exists(storage._get_file_path(file_path))
 
     # Load data
     loaded_data = storage.load(key)
