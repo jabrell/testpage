@@ -4,8 +4,9 @@ branch = True
 [report]
 show_missing = True
 omit =
-    app/tests/*
-    app/flaskapp/*
+    tests/*
+    app/filestorage/protocol.py
+    app/middleware/request_logging.py
+
 exclude_lines =
-    @abstractmethod
-    @abc.abstractmethod
+    pragma: no cover

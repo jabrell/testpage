@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from .mixins import TimestampMixin
+from ..mixins import TimestampMixin
 
 if TYPE_CHECKING:
     from .user import User  # pragma: no cover
