@@ -36,8 +36,8 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         ) from None
-    user = select(User).where(User.username == token_data.sub)
-    user = session.exec(user).first()
+    q = select(User).where(User.username == token_data.sub)
+    user = session.exec(q).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"

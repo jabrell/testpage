@@ -23,8 +23,11 @@ dev = [
     "coverage>=7.7.0",
     "faker>=37.0.2",
     "moto>=5.1.1",
+    "mypy>=1.15.0",
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
+    "types-boto3>=1.37.15",
+    "types-passlib>=1.7.7.20250319",
 ]
 
 
