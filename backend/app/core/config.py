@@ -29,7 +29,6 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
-    # FIXME: Move to .env file
     # Postges settings
     POSTGRES_SERVER: str
     POSTGRES_PORT: int
@@ -40,7 +39,7 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
-        return MultiHostUrl.build(
+        return MultiHostUrl.build(  # type: ignore[return-value]
             scheme="postgresql+psycopg2",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD,

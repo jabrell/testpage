@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import jwt
@@ -22,7 +22,7 @@ def create_access_token(
     Returns:
         str: The encoded JWT token.
     """
-    expire = datetime.now(timezone.utc) + expires_delta
+    expire = datetime.now(UTC) + expires_delta
     to_encode = {"exp": expire, "sub": str(information)}
     encoded_jwt = jwt.encode(
         to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
@@ -45,9 +45,9 @@ def decode_access_token(token: str) -> dict[str, Any] | None:
         )
         return decoded
     except jwt.ExpiredSignatureError:
-        raise InvalidTokenError("Token expired")
+        raise InvalidTokenError("Token expired") from None
     except jwt.InvalidTokenError:
-        raise InvalidTokenError("Token invalid")
+        raise InvalidTokenError("Token invalid") from None
 
 
 def hash_password(password: str) -> str:

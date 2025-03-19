@@ -2,10 +2,10 @@ from sqlmodel import Session, or_, select
 
 from app.core.exceptions import InvalidPassword, UserNotFound
 from app.core.security import hash_password, verify_password
-from app.models.user import User, UserCreate
+from app.models.user import User, UserCreate, UserGroup
 
 
-def get_user(*, username: str, session: Session) -> User:
+def get_user(*, username: str, session: Session) -> User | None:
     """Get user by username or email address.
 
     Args:
@@ -60,10 +60,11 @@ def create_user(
     db_user = User(**user.model_dump())
     if not usergroup_id:
         usergroup_id = session.exec(
-            select(User.usergroup_id).filter(User.username == user.username)
+            select(UserGroup.id).where(db_user.usergroup_name == UserGroup.name)
         ).first()
+        if not usergroup_id:
+            raise ValueError("User group not found.")
     db_user.usergroup_id = usergroup_id
-
     session.add(db_user)
     session.commit()
     session.refresh(db_user)

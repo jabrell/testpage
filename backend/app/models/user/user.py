@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
-from .mixins import TimestampMixin
+from ..mixins import TimestampMixin
 from .user_group import UserGroup
 
 __all__ = ["User", "UserPublic", "UserCreate"]

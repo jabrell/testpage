@@ -49,7 +49,7 @@ async def create_user(*, user: UserCreate, session: SessionDep) -> UserPublic:
         )
     # check whether the user group exists
     usergroup_id = session.exec(
-        select(UserGroup.id).filter(UserGroup.name == user.usergroup_name)
+        select(UserGroup.id).where(UserGroup.name == user.usergroup_name)
     ).first()
     if not usergroup_id:
         raise HTTPException(

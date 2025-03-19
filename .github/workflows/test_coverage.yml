@@ -15,20 +15,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - uses: pre-commit/action@v3.0.1
-    - name: Install dependencies
-      run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install ruff pytest coverage
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test and coverage with pytest
-      run: |
-        cd backend
-        coverage run -m pytest
-        coverage report
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install ruff pytest coverage
+          if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
+      - name: Test and coverage with pytest
+        run: |
+          cd backend
+          coverage run -m pytest
+          coverage report

@@ -27,6 +27,17 @@ def test_create_user(db: Session):
     assert user.email == u_create.email
 
 
+def test_create_user_wrong_usergroup(db: Session):
+    u_create = UserCreate(
+        username="test_user",
+        password="test_password",
+        email="test@example.com",
+        usergroup_name="wrong",
+    )
+    with pytest.raises(ValueError):
+        create_user(user=u_create, session=db)
+
+
 def test_authenticate_user_w_name(db: Session):
     expected = get_user(username=settings.FIRST_SUPERUSER, session=db)
     user = authenticate_user(

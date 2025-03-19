@@ -1,0 +1,72 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.37.15",
+    "fastapi[standard]>=0.115.11",
+    "mypy-boto3-s3>=1.37.0",
+    "passlib[bcrypt]>=1.7.4",
+    "psycopg2-binary>=2.9.10",
+    "pydantic-settings>=2.8.1",
+    "pydantic[email]>=2.10.6",
+    "pyjwt>=2.10.1",
+    "requests>=2.32.3",
+    "sqlmodel>=0.0.24",
+    "tenacity>=9.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.7.0",
+    "faker>=37.0.2",
+    "moto>=5.1.1",
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+    "pytest>=8.3.5",
+    "types-boto3>=1.37.15",
+    "types-passlib>=1.7.7.20250319",
+]
+
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = ["UP006"] # Ignore "Use `type` instead of `Type`" warnings
+
+# ignore = [
+#     "E501",  # line too long, handled by black
+#     "B008",  # do not perform function calls in argument defaults
+#     "C901",  # too complex
+#     "W191",  # indentation contains tabs
+# ]
+
+# 4. Ignore `E402` (import violations) in all `__init__.py` files, and in selected subdirectories.
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402", "F401"]
+"**/{tests,docs,tools}/*" = ["E402"]
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+omit = [
+    "tests/*",
+    "app/filestorage/protocol.py",
+    "app/middleware/request_logging.py",
+    "*/__init__.py",
+]
+exclude_lines = ["pragma: no cover"]
+
+[tool.pytest.ini_options]
+addopts = "-W ignore::DeprecationWarning"
