@@ -24,8 +24,8 @@ SessionDep = Annotated[Session, Depends(get_db)]
 
 
 def get_schema_manager() -> Generator[SchemaManager, None, None]:
-    with SchemaManager() as manager:
-        yield manager
+    manager = SchemaManager()
+    yield manager
 
 
 SchemaManagerDep = Annotated[SchemaManager, Depends(get_schema_manager)]

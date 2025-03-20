@@ -61,7 +61,9 @@ dev = [
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "types-boto3" },
+    { name = "types-jsonschema" },
     { name = "types-passlib" },
+    { name = "types-pyyaml" },
 ]
 
 [package.metadata]
@@ -89,7 +91,9 @@ dev = [
     { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "types-boto3", specifier = ">=1.37.15" },
+    { name = "types-jsonschema", specifier = ">=4.23.0.20241208" },
     { name = "types-passlib", specifier = ">=1.7.7.20250319" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20241230" },
 ]
 
 [[package]]
@@ -1270,12 +1274,33 @@ wheels = [
 ]
 
 [[package]]
+name = "types-jsonschema"
+version = "4.23.0.20241208"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "referencing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ad/e6/9e5cd771687086844caa43dbb211ec0d1cfa899d17c110f3220efcd46e83/types_jsonschema-4.23.0.20241208.tar.gz", hash = "sha256:e8b15ad01f290ecf6aea53f93fbdf7d4730e4600313e89e8a7f95622f7e87b7c", size = 14770 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/91/64/4b2fba8b7cb0104ba013f2a1bf6f39a98e927e14befe1ef947d373b25218/types_jsonschema-4.23.0.20241208-py3-none-any.whl", hash = "sha256:87934bd9231c99d8eff94cacfc06ba668f7973577a9bd9e1f9de957c5737313e", size = 15021 },
+]
+
+[[package]]
 name = "types-passlib"
 version = "1.7.7.20250319"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/74/5b/1b3b8babdf37fcf13829adcc96f7f996f6e02e075ae17f300b9c34ecea64/types_passlib-1.7.7.20250319.tar.gz", hash = "sha256:13bcec71852208f63459fcdd9f694bedf66639b2c7de5849a8efa9272f0bd4be", size = 23342 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/27/e5/bab2a059614b38f84e93bfe6bedca9274949e9e3994fa898c9017bd45ffb/types_passlib-1.7.7.20250319-py3-none-any.whl", hash = "sha256:50ecbe0cc8ff91b8523bd4ca6a8bf6e0a0ac655872690d8ef18002a311f20378", size = 38075 },
+]
+
+[[package]]
+name = "types-pyyaml"
+version = "6.0.12.20241230"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9a/f9/4d566925bcf9396136c0a2e5dc7e230ff08d86fa011a69888dd184469d80/types_pyyaml-6.0.12.20241230.tar.gz", hash = "sha256:7f07622dbd34bb9c8b264fe860a17e0efcad00d50b5f27e93984909d9363498c", size = 17078 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/c1/48474fbead512b70ccdb4f81ba5eb4a58f69d100ba19f17c92c0c4f50ae6/types_PyYAML-6.0.12.20241230-py3-none-any.whl", hash = "sha256:fa4d32565219b68e6dee5f67534c722e53c00d1cfc09c435ef04d7353e1e96e6", size = 20029 },
 ]
 
 [[package]]

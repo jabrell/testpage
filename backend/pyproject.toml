@@ -28,7 +28,9 @@ dev = [
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
     "types-boto3>=1.37.15",
+    "types-jsonschema>=4.23.0.20241208",
     "types-passlib>=1.7.7.20250319",
+    "types-pyyaml>=6.0.12.20241230",
 ]
 
 
