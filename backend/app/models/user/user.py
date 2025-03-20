@@ -9,8 +9,8 @@ __all__ = ["User", "UserPublic", "UserCreate"]
 
 class UserPublic(SQLModel):
     id: int | None = None
-    username: str
-    email: EmailStr
+    username: str = Field(unique=True)
+    email: EmailStr = Field(unique=True)
 
 
 class UserCreate(UserPublic):
@@ -32,5 +32,4 @@ class User(UserCreate, table=True, mixins=[TimestampMixin]):
             id=self.id,
             username=self.username,
             email=self.email,
-            usergroup=self.usergroup.name,
         )

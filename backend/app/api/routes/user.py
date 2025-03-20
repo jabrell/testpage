@@ -35,8 +35,8 @@ async def create_user(*, user: UserCreate, session: SessionDep) -> UserPublic:
         UserPublic: User data.
     """
     # ensure that no user with the same name or email exists
-    # TODO add logging
     # check whether the user already exists
+    # TODO should be enforced at the database level and error should be handled
     if get_user(username=user.username, session=session):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

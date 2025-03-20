@@ -1,10 +1,13 @@
 import pytest
+from faker import Faker
 from sqlmodel import Session, select
 
 from app.api.crud.user import authenticate_user, create_user, delete_user, get_user
 from app.core.config import settings
 from app.core.exceptions import InvalidPassword, UserNotFound
 from app.models.user import UserCreate, UserGroup
+
+fake = Faker()
 
 
 def test_user_get(db: Session):
@@ -15,9 +18,9 @@ def test_user_get(db: Session):
 
 def test_create_user(db: Session):
     u_create = UserCreate(
-        username="test_user",
-        password="test_password",
-        email="test@example.com",
+        username=fake.user_name(),
+        password=fake.password(),
+        email=fake.email(),
     )
     usergroup_id = db.exec(
         select(UserGroup.id).filter(UserGroup.name == "standard")
@@ -29,9 +32,9 @@ def test_create_user(db: Session):
 
 def test_create_user_wrong_usergroup(db: Session):
     u_create = UserCreate(
-        username="test_user",
-        password="test_password",
-        email="test@example.com",
+        username=fake.user_name(),
+        password=fake.password(),
+        email=fake.email(),
         usergroup_name="wrong",
     )
     with pytest.raises(ValueError):
@@ -72,9 +75,9 @@ def test_authenticate_user_invalid(db: Session):
 
 def test_delete_user(db: Session):
     u_create = UserCreate(
-        username="test_user",
-        password="test_password",
-        email="test@example.com",
+        username=fake.user_name(),
+        password=fake.password(),
+        email=fake.email(),
     )
     user = create_user(user=u_create, session=db)
     assert user.username == u_create.username

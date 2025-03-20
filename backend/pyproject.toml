@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "boto3>=1.37.15",
     "fastapi[standard]>=0.115.11",
+    "jsonschema>=4.23.0",
     "mypy-boto3-s3>=1.37.0",
     "passlib[bcrypt]>=1.7.4",
     "psycopg2-binary>=2.9.10",
