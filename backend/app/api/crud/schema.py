@@ -26,7 +26,8 @@ def create_schema(
 def read_schema(
     db: Session, schema_id: int | None = None, schema_name: str | None = None
 ) -> RawJsonSchema:
-    """Read a schema from the database
+    """Read a schema from the database. Either the schema_id or schema_name must
+        be provided but not both.
 
     Args:
         db (Session): Database session
@@ -43,12 +44,59 @@ def read_schema(
         raise ValueError("Either schema_id or schema_name must be provided")
     if schema_id is not None and schema_name is not None:
         raise ValueError("Only one of schema_id or schema_name must be provided")
-    if schema_id is not None:
+    if schema_id:
         schema = db.get(RawJsonSchema, schema_id)
-    elif schema_name is not None:
+    if schema_name:
         schema = db.exec(
-            select(RawJsonSchema).filter(RawJsonSchema.name == schema_name).first()
-        )
+            select(RawJsonSchema).filter(RawJsonSchema.name == schema_name)
+        ).first()
     if schema is None:
         raise ValueError("Schema not found")
     return schema
+
+
+def delete_schema(
+    db: Session, schema_id: int | None = None, schema_name: str | None = None
+) -> bool:
+    """Delete a schema by id.
+
+    Args:
+        db (Session): Database session.
+        schema_id (int): Schema id.
+        schema_name (str): Schema name.
+
+    Returns:
+        bool: True if the schema was deleted, False otherwise.
+    """
+    try:
+        schema = read_schema(db=db, schema_id=schema_id, schema_name=schema_name)
+        db.delete(schema)
+        db.commit()
+        return True
+    except Exception:
+        db.rollback()
+        return False
+
+
+def activate_schema(
+    db: Session, schema_id: int | None = None, schema_name: str | None = None
+) -> bool:
+    """Activate a schema by id or name.
+
+    Args:
+        db (Session): Database session.
+        schema_id (int): Schema id.
+        schema_name (str): Schema name.
+
+    Returns:
+        bool: True if the schema was activated, False otherwise.
+    """
+    try:
+        schema = read_schema(db=db, schema_id=schema_id, schema_name=schema_name)
+        schema.is_active = True
+        db.commit()
+        return True
+        # TODO Add logic to create the database table
+    except Exception:
+        db.rollback()
+        return False
