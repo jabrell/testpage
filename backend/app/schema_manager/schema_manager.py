@@ -7,7 +7,7 @@ import yaml  # type: ignore
 
 __all__ = ["SchemaManager"]
 
-SchemaFileType = str | Path | dict[str, Any]
+SchemaFileType = str | Path | dict[str, Any] | bytes
 
 BASE_SCHEMA = Path(__file__).parent / "meta_schemas" / "frictionlessv1.json"
 SWEET_EXTENSIONS = [Path(__file__).parent / "meta_schemas" / "sweet_metastandard.yaml"]
@@ -74,6 +74,23 @@ class SchemaManager:
         """
         if isinstance(file, dict):
             return file
+
+        if isinstance(file, bytes):
+            # Decode the bytes to a string
+            content_str = file.decode("utf-8")
+            res = None
+            try:
+                res = yaml.safe_load(content_str)
+            except yaml.YAMLError:
+                pass
+            try:
+                res = json.loads(content_str)
+            except json.JSONDecodeError:
+                pass
+            if res is not None:
+                return cast(dict[str, Any], res)
+            raise ValueError("Bytes content is not json or yaml") from None
+
         file = Path(file)
         with open(file) as f:
             if file.suffix == ".json":
@@ -108,8 +125,9 @@ class SchemaManager:
         }
         return combined_schema
 
-    def validate_schema(self, schema: str | Path | dict[str, Any]) -> None:
-        """Check if a schema is valid given the metadata schema
+    def validate_schema(self, schema: SchemaFileType) -> dict:
+        """Check if a schema is valid given the metadata schema and return it
+            as a dictionary
 
         Args:
             schema (str | Path | dict[str, Any]): Schema to check
@@ -118,7 +136,10 @@ class SchemaManager:
 
         Raises:
             jsonschema.exceptions.ValidationError: If the schema is not valid
+
+        Returns:
+            dict[str, Any]: The schema as a dictionary
         """
-        if isinstance(schema, str | Path):
-            schema = SchemaManager.read_schema_from_file(schema)
+        schema = SchemaManager.read_schema_from_file(schema)
         jsonschema.validate(instance=schema, schema=self._metaschema)
+        return schema

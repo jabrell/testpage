@@ -8,27 +8,7 @@ from jsonschema.exceptions import ValidationError
 
 from app.schema_manager import SchemaManager
 
-# valid and invalid schema under frictionless standard only
-fl_valid = {
-    "fields": [
-        {"name": "id", "type": "integer"},
-        {"name": "name", "type": "string"},
-    ],
-}
-
-fl_invalid = {"name": "test"}
-
-sweet_valid = {
-    # schema misses the "name" key which is mandatory in the SWEET standard
-    "fields": [
-        {"name": "id", "type": "integer"},
-        {"name": "name", "type": "string"},
-    ],
-    "name": "test",
-    "title": "test",
-    "description": "test",
-    "primaryKey": ["test"],
-}
+from .settings import fl_invalid, fl_valid, sweet_valid
 
 
 def test_read_schema_json():
@@ -55,6 +35,27 @@ def test_read_schema_yaml(ext: str):
     fn.unlink()
 
 
+def test_read_schema_bytes_json():
+    json_bytes = b'{"key": "value"}'
+    result = SchemaManager.read_schema_from_file(json_bytes)
+    assert result == {"key": "value"}
+
+
+def test_read_schema_bytes_yaml():
+    yaml_bytes = b"key: value"
+    result = SchemaManager.read_schema_from_file(yaml_bytes)
+    assert result == {"key": "value"}
+
+
+def test_read_schema_bytes_yaml_exception():
+    json_bytes_invalid = b'{"key": "value}'
+    yaml_bytes_invalid = b"key: value\nanother_key: [1, 2, 3"
+    with pytest.raises(ValueError):
+        SchemaManager.read_schema_from_file(yaml_bytes_invalid)
+    with pytest.raises(ValueError):
+        SchemaManager.read_schema_from_file(json_bytes_invalid)
+
+
 def test_read_schema_invalid():
     fn = Path("tmp.txt")
     with open(fn, "w") as f:
@@ -69,7 +70,7 @@ def test_read_schema_invalid():
 
 def test_validate_schema_from_dict():
     relation_manager = SchemaManager(metaschema_extensions=[])
-    assert relation_manager.validate_schema(fl_valid) is None
+    assert relation_manager.validate_schema(fl_valid) == fl_valid
     # invalid schema should raise a validation error
     with pytest.raises(ValidationError):
         relation_manager.validate_schema(fl_invalid)
@@ -81,7 +82,7 @@ def test_validate_schema_from_json(fn: str = "schema.json"):
     my_file = Path(fn)
     with open(my_file, "w") as f:
         json.dump(fl_valid, f)
-    assert relation_manager.validate_schema(my_file) is None
+    assert relation_manager.validate_schema(my_file) == fl_valid
     my_file.unlink()
     # invalid schema should raise a validation error
     my_file = Path(fn)
@@ -99,7 +100,7 @@ def test_validate_schema_from_yaml(fn: str):
     my_file = Path(fn)
     with open(my_file, "w") as f:
         json.dump(fl_valid, f)
-    assert relation_manager.validate_schema(my_file) is None
+    assert relation_manager.validate_schema(my_file) == fl_valid
     my_file.unlink()
     # invalid schema should raise a validation error
     my_file = Path(fn)
@@ -110,10 +111,11 @@ def test_validate_schema_from_yaml(fn: str):
     my_file.unlink()
 
 
-def test_sweet_extensions():
+def test_sweet_schema_extensions():
     """Test extended metadata standard of SWEET"""
     invalid_schema = {
         # schema misses the "name" key which is mandatory in the SWEET standard
+        # but not in the standard frictionless schema
         "fields": [
             {"name": "id", "type": "integer"},
             {"name": "name", "type": "string"},
@@ -121,7 +123,7 @@ def test_sweet_extensions():
     }
     man = SchemaManager(metaschema_extensions=[])
     sweet_man = SchemaManager()
-    assert man.validate_schema(invalid_schema) is None
+    assert man.validate_schema(invalid_schema) == invalid_schema
     with pytest.raises(ValidationError):
         sweet_man.validate_schema(invalid_schema)
 
@@ -136,7 +138,7 @@ def test_sweet_extensions_name_format():
     with pytest.raises(ValidationError):
         SchemaManager().validate_schema(schema)
     schema["name"] = "test_test"
-    assert SchemaManager().validate_schema(schema) is None
+    assert SchemaManager().validate_schema(schema) == schema
 
     # name of format of field is also fixed to using lower cases and underscores
     schema["fields"][0]["name"] = "ID"
