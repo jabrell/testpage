@@ -1,16 +1,16 @@
-from fastapi import APIRouter, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlmodel import select
 
-from app.api.crud.schema import create_schema
-from app.api.deps import SchemaManagerDep, SessionDep
-from app.models.schema import RawJsonSchema
+from app.api.crud.schema import create_schema, delete_schema, read_schema
+from app.api.deps import SchemaManagerDep, SessionDep, is_admin_user
+from app.models.schema import TableSchema, TableSchemaPublic
 
 router = APIRouter(prefix="/schema", tags=["schema"])
 
 
 @router.post(
     "/",
-    # response_model=RawJsonSchema,
+    response_model=TableSchemaPublic,
     status_code=status.HTTP_201_CREATED,
     responses={
         status.HTTP_400_BAD_REQUEST: {"description": "Cannot create schema"},
@@ -20,6 +20,7 @@ router = APIRouter(prefix="/schema", tags=["schema"])
             "description": "Invalid file. Use JSON or YAML"
         },
     },
+    dependencies=[Depends(is_admin_user)],
 )
 async def create_schema_api(
     file: UploadFile, session: SessionDep, schema_manager: SchemaManagerDep
@@ -42,7 +43,8 @@ async def create_schema_api(
     content = await file.read()
     if file.size == 0:
         raise HTTPException(status_code=422, detail="Empty file")
-    if not (file.filename.endswith(".json") or file.filename.endswith(".yaml")):
+    fn = file.filename or ""
+    if not (fn.endswith(".json") or fn.endswith(".yaml")):
         raise HTTPException(status_code=422, detail="Invalid file. Use JSON or YAML")
     try:
         schema = create_schema(db=session, data=content, schema_manager=schema_manager)
@@ -53,26 +55,77 @@ async def create_schema_api(
         ) from e
 
 
-@router.get("/{schema_id}", response_model=RawJsonSchema)
-def get_schema(schema_id: int, session: SessionDep):
-    """Get a schema either by its ID or by its name."""
-    schema = session.get(RawJsonSchema, schema_id)
+@router.get(
+    "/{schema_id}",
+    response_model=TableSchemaPublic,
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Schema not found"}},
+)
+def get_schema(schema_id: int | str, session: SessionDep):
+    """Get a schema either by its ID or by its name.
+
+    Args:
+        schema_id (int | str): The schema ID.
+        session (SessionDep): The database session.
+
+    Returns:
+        TableSchemaPublic: The schema object"""
+    try:
+        schema_id = int(schema_id)
+    except ValueError:
+        pass
+    if isinstance(schema_id, int):
+        try:
+            schema = read_schema(db=session, schema_id=schema_id)
+        except ValueError:
+            schema = None
+    else:
+        try:
+            schema = read_schema(db=session, schema_name=schema_id)
+        except ValueError:
+            schema = None
     if not schema:
         raise HTTPException(status_code=404, detail="Schema not found")
-    return schema
+    return schema.get_public()
 
 
-@router.delete("/{schema_id}", response_model=dict)
-def delete_schema(schema_id: int, session: SessionDep):
-    schema = session.get(RawJsonSchema, schema_id)
-    if not schema:
+@router.delete(
+    "/{schema_id}",
+    response_model=dict,
+    status_code=200,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Schema not found"},
+        status.HTTP_200_OK: {"description": "Schema deleted"},
+    },
+    dependencies=[Depends(is_admin_user)],
+)
+def delete_schema_api(
+    schema_id: int | str,
+    session: SessionDep,
+):
+    """Delete a schema by its ID or name
+
+    Args:
+        schema_id (int | str): The schema ID.
+        session (SessionDep): The database session.
+
+    Returns:
+        dict: The deletion confirmation message"""
+    try:
+        schema_id = int(schema_id)
+    except ValueError:
+        pass
+    if isinstance(schema_id, int):
+        deleted = delete_schema(db=session, schema_id=schema_id)
+    else:
+        deleted = delete_schema(db=session, schema_name=schema_id)
+    if not deleted:
         raise HTTPException(status_code=404, detail="Schema not found")
-    session.delete(schema)
-    session.commit()
     return {"detail": "Schema deleted successfully"}
 
 
-@router.get("/", response_model=list[RawJsonSchema])
+@router.get("/", response_model=list[TableSchemaPublic])  #
 def list_schemas(session: SessionDep):
-    schemas = session.exec(select(RawJsonSchema)).all()
+    schemas = [s.get_public() for s in session.exec(select(TableSchema)).all()]
+    # schemas = session.exec(select(TableSchema)).all()
     return schemas

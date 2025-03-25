@@ -7,7 +7,7 @@ from app.api.crud.schema import (
     delete_schema,
     read_schema,
 )
-from app.models.schema import RawJsonSchema
+from app.models.schema import TableSchema
 from app.schema_manager import SchemaManager
 
 from .settings import sweet_valid
@@ -59,7 +59,8 @@ def test_read_schema_by_name(
     inserted = create_schema(db=db, data=data, schema_manager=schema_manager)
     schema = read_schema(db=db, schema_name=inserted.name)
     assert schema == inserted
-    db.delete(schema)
+    to_delete = db.get(TableSchema, schema.id)
+    db.delete(to_delete)
     db.commit()
 
 
@@ -79,7 +80,7 @@ def test_delete_schema_by_id(
 ) -> None:
     schema = create_schema(db=db, data=data, schema_manager=schema_manager)
     assert delete_schema(db=db, schema_id=schema.id)
-    assert not db.get(RawJsonSchema, schema.id)
+    assert not db.get(TableSchema, schema.id)
 
 
 def test_delete_schema_by_name(
@@ -87,7 +88,7 @@ def test_delete_schema_by_name(
 ) -> None:
     schema = create_schema(db=db, data=data, schema_manager=schema_manager)
     assert delete_schema(db=db, schema_name=schema.name)
-    assert not db.get(RawJsonSchema, schema.id)
+    assert not db.get(TableSchema, schema.id)
 
 
 def test_delete_schema_false(db: Session) -> None:

@@ -15,8 +15,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         """Log the request and response for each API call including the duration
         and the user who made the request."""
         request_id = str(uuid.uuid4())
-        if request.headers.get("authorization"):
-            token = request.headers.get("authorization").split(" ")[1]
+        if auth_token := request.headers.get("authorization"):
+            token = auth_token.split(" ")[1]
             payload = jwt.decode(
                 token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
             )

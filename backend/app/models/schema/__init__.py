@@ -1,3 +1,3 @@
-from .schema import RawJsonSchema
+from .schema import TableSchema, TableSchemaCreate, TableSchemaPublic
 
-__all__ = ["RawJsonSchema"]
+__all__ = ["TableSchema", "TableSchemaCreate", "TableSchemaPublic"]

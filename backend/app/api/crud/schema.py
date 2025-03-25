@@ -1,14 +1,14 @@
-from sqlmodel import Session, select
+from sqlmodel import Session, or_, select
 
-from app.models.schema import RawJsonSchema
+from app.models.schema import TableSchema, TableSchemaPublic
 from app.schema_manager import SchemaManager
 
 
 def create_schema(
     db: Session, data: bytes, schema_manager: SchemaManager
-) -> RawJsonSchema:
+) -> TableSchemaPublic:
     schema = schema_manager.validate_schema(data)
-    db_schema = RawJsonSchema(
+    db_schema = TableSchema(
         name=schema["name"],
         description=schema["description"],
         jsonschema=schema,
@@ -25,7 +25,7 @@ def create_schema(
 
 def read_schema(
     db: Session, schema_id: int | None = None, schema_name: str | None = None
-) -> RawJsonSchema:
+) -> TableSchema:
     """Read a schema from the database. Either the schema_id or schema_name must
         be provided but not both.
 
@@ -44,12 +44,11 @@ def read_schema(
         raise ValueError("Either schema_id or schema_name must be provided")
     if schema_id is not None and schema_name is not None:
         raise ValueError("Only one of schema_id or schema_name must be provided")
-    if schema_id:
-        schema = db.get(RawJsonSchema, schema_id)
-    if schema_name:
-        schema = db.exec(
-            select(RawJsonSchema).filter(RawJsonSchema.name == schema_name)
-        ).first()
+    schema = db.exec(
+        select(TableSchema).filter(
+            or_(TableSchema.name == schema_name, TableSchema.id == schema_id)
+        )
+    ).first()
     if schema is None:
         raise ValueError("Schema not found")
     return schema

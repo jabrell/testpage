@@ -73,3 +73,6 @@ exclude_lines = ["pragma: no cover"]
 
 [tool.pytest.ini_options]
 addopts = "-W ignore::DeprecationWarning"
+
+[tool.mypy]
+exclude = "tests/"
