@@ -55,6 +55,8 @@ def pytest_sessionstart():
             email=settings.FIRST_SUPERUSER_MAIL,
             password=hash_password(settings.FIRST_SUPERUSER_PASSWORD),
             usergroup_id=group_id,
+            is_superuser=True,
+            is_active=True,
         )
         group_id = s.exec(
             select(UserGroup.id).where(UserGroup.name == "standard")

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %} Schemas {% endblock title %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Upload New Schema</h2>
+    <form method="post" action="{{ url_for('schemas') }}" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="file" class="form-label">Please upload new schema (YAML or JSON):</label>
+            <input class="form-control" type="file" id="file" name="file" accept=".yaml,.json" required>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="alert alert-danger">
+              {% for category, message in messages %}
+                {{ message }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    <h2 class="mt-5 mb-4">Existing Schemas</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if schemas %}
+                {% for schema in schemas %}
+                <tr>
+                    <td>{{ schema.id }}</td>
+                    <td>{{ schema.name }}</td>
+                    <td>{{ schema.description }}</td>
+                    <td>
+                        <a href="{{ url_for('view_schema', schema_id=schema.id) }}" class="btn btn-secondary">View JSON</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">No schemas available.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock content %}

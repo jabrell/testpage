@@ -1,0 +1,23 @@
+name: generation
+description: Electricity generation data
+title: Electricity Generation
+fields:
+  - name: country
+    title: Country
+    description: Name of the country in which generation takes place
+    type: string
+    constraints:
+      required: true
+  - name: datetime
+    title: Datetime
+    description: End of hour in which generation took place in UTC time
+    type: datetime
+    constraints:
+      required: true
+  - name: value
+    title: Generation
+    description: Amount of electricity generated
+    type: number
+    constraints:
+      required: true
+      minimum: 0

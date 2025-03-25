@@ -35,6 +35,8 @@ def init_db(session: Session) -> None:
             username=settings.FIRST_SUPERUSER,
             email=settings.FIRST_SUPERUSER_MAIL,
             password=settings.FIRST_SUPERUSER_PASSWORD,
+            is_active=True,
+            is_superuser=True,
             usergroup_id=admin_group,
         )
         user_in.password = hash_password(user_in.password)

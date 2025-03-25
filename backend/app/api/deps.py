@@ -5,8 +5,6 @@ from typing import Annotated
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jwt.exceptions import InvalidTokenError
-from pydantic import ValidationError
 from sqlmodel import Session, select
 
 from app.core.config import settings
@@ -41,7 +39,7 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
         token_data = TokenPayload(**payload)
-    except (InvalidTokenError, ValidationError):
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
