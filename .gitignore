@@ -2,3 +2,4 @@ t.Docker*
 _delete/*
 test.db
 .coverage
+.mypy_cache
