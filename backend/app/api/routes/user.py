@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 
-from app.api.crud.user import create_user as create_user_crud
-from app.api.crud.user import delete_user as delete_user_crud
-from app.api.crud.user import get_user
+from app.api.crud.user import create_user, delete_user, get_user
 from app.api.deps import SessionDep, is_admin_user
 from app.models.user import UserCreate, UserGroup, UserPublic
 
@@ -24,7 +22,7 @@ router = APIRouter(prefix="/user", tags=["user"])
     },
     dependencies=[Depends(is_admin_user)],
 )
-async def create_user(*, user: UserCreate, session: SessionDep) -> UserPublic:
+async def create_user_api(*, user: UserCreate, session: SessionDep) -> UserPublic:
     """Create a new user. Only admin users can create new users.
 
     Args:
@@ -56,7 +54,7 @@ async def create_user(*, user: UserCreate, session: SessionDep) -> UserPublic:
             status_code=status.HTTP_404_NOT_FOUND, detail="User group not found"
         )
     # create the user
-    user = create_user_crud(user=user, usergroup_id=usergroup_id, session=session)
+    user = create_user(user=user, usergroup_id=usergroup_id, session=session)
     return user.get_public()
 
 
@@ -72,7 +70,7 @@ async def create_user(*, user: UserCreate, session: SessionDep) -> UserPublic:
     },
     dependencies=[Depends(is_admin_user)],
 )
-async def delete_user(
+async def delete_user_api(
     user_id: int,
     session: SessionDep,
 ) -> None:
@@ -82,4 +80,4 @@ async def delete_user(
         user_id(int): Identifier of the user
         session (SessionDep): Database session.
     """
-    delete_user_crud(user_id=user_id, session=session)
+    delete_user(user_id=user_id, session=session)
