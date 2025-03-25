@@ -14,6 +14,7 @@ from app.main import app
 # import all models to create tables
 from app.models import *  # noqa
 from app.models import User, UserGroup
+from app.schema_manager import SchemaManager
 
 from .utils import get_admin_header, get_standard_header
 
@@ -79,6 +80,11 @@ def override_db_dependency():
 def db() -> Generator[Session, None, None]:
     with Session(test_engine) as session:
         yield session
+
+
+@pytest.fixture(scope="session")
+def schema_manager() -> SchemaManager:
+    return SchemaManager()
 
 
 @pytest.fixture(scope="module")

@@ -12,6 +12,7 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.db import engine
 from app.models import TokenPayload, User
+from app.schema_manager import SchemaManager
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -19,9 +20,18 @@ def get_db() -> Generator[Session, None, None]:
         yield session
 
 
-reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/user/login")
-
 SessionDep = Annotated[Session, Depends(get_db)]
+
+
+def get_schema_manager() -> Generator[SchemaManager, None, None]:
+    manager = SchemaManager()
+    yield manager
+
+
+SchemaManagerDep = Annotated[SchemaManager, Depends(get_schema_manager)]
+
+
+reusable_oauth2 = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/user/login")
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 

@@ -1,0 +1,109 @@
+required: ["name", "fields", "title", "description"]
+additionalProperties: false
+properties:
+  # ----------------------------------------------------------------------------
+  #                         TABLE DESCRIPTION
+  # ----------------------------------------------------------------------------
+  name:
+    type: string
+    pattern: "^[a-z_]+$"
+    description: |
+      A unique identifier for the table. This is a string that has to be unique
+      and can only contain lower case letters and underscores.
+  title:
+    type: string
+    description: |
+      A human-readable title for the table. Think of this as the label that will
+      be used in graphs and tables.
+  description:
+    type: string
+    description: |
+      A human-readable description of the table. This should explain what the
+      table is about and what the columns mean.
+
+  # ----------------------------------------------------------------------------
+  #                DESCRIPTION OF SPECIAL COLUMNS/FIELDS
+  # ----------------------------------------------------------------------------
+  valueField:
+    type: object
+    description: |
+      Indicate the field of the table that contains value. If provided all other
+      fields will be considered as joint primary key, i.e., the combination of
+      all other fields must be unique across all rows.
+    required: ["field", "unit"]
+    properties:
+      field:
+        description: Name of the field that contains the value
+        type: string
+        pattern: "^[a-z_]+$"
+      unit:
+        description: Unit of the value
+        type: string
+        # TODO define units
+        # enum:
+
+  timeFields:
+    type: array
+    description: |
+      Indicate the fields of the table that contain time information. If provided
+      the table will be considered as a time series table.
+    items:
+      type: object
+      field:
+        description: Name of the field that contains the time value
+        type: string
+        pattern: "^[a-z_]+$"
+      frequency:
+        description: Frequency of the time series
+        type: string
+        # TODO define frequencies
+        # enum:
+
+  locationFields:
+    type: array
+    description: |
+      Indicate the fields of the table that contain location information.
+    items:
+      type: object
+      field:
+        description: Name of the field that contains the location value
+        type: string
+        pattern: "^[a-z_]+$"
+      locationType:
+        description: Type of the location value
+        type: string
+        # TODO define location types
+        # enum:
+
+  # ----------------------------------------------------------------------------
+  #                DATA DISCOVERY AND ONTOLOGY INFORMATION
+  # ----------------------------------------------------------------------------
+  tags:
+    type: array
+    description: |
+      A list of tags that can be used to categorize the table. This can be used
+      to filter tables in the UI.
+    items:
+      type: string
+
+  # ----------------------------------------------------------------------------
+  #                            SOURCE
+  # ----------------------------------------------------------------------------
+  source:
+    type: object
+    description: |
+      Information about the source of the data. This can be used to provide
+      attribution and to link back to the original data source.
+    # TODO we need to account for several types of sources incl. model results,
+    # TODO urls, etc.
+    # TODO sources should include allow for contributory, license, and CiteAs
+  # ----------------------------------------------------------------------------
+  #                  FRICTIONLESS FIELDS/COLUMNS
+  # ----------------------------------------------------------------------------
+  primaryKey: {}
+  foreignKeys: {}
+  missingValues: {}
+  fields:
+    type: array
+    description: |
+      The columns of the table as in the frictionless standard. Note that we

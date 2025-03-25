@@ -9,8 +9,8 @@ __all__ = ["User", "UserPublic", "UserCreate"]
 
 class UserPublic(SQLModel):
     id: int | None = None
-    username: str
-    email: EmailStr
+    username: str = Field(unique=True)
+    email: EmailStr = Field(unique=True)
 
 
 class UserCreate(UserPublic):
@@ -19,7 +19,7 @@ class UserCreate(UserPublic):
     usergroup_name: str = "standard"
 
     def get_public(self):
-        return UserPublic(username=self.username, email=self.email)
+        return UserPublic(**self.model_dump())
 
 
 class User(UserCreate, table=True, mixins=[TimestampMixin]):
@@ -28,9 +28,4 @@ class User(UserCreate, table=True, mixins=[TimestampMixin]):
     usergroup: UserGroup = Relationship(back_populates="users")
 
     def get_public(self):
-        return UserPublic(
-            id=self.id,
-            username=self.username,
-            email=self.email,
-            usergroup=self.usergroup.name,
-        )
+        return UserPublic(**self.model_dump())

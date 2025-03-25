@@ -61,7 +61,6 @@ def test_create_user(admin_token_header: dict[str, str]):
     )
     assert response.status_code == status.HTTP_201_CREATED
     res = response.json()
-    res["id"] = None
     assert res == user.get_public().model_dump()
 
 

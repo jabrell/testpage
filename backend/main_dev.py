@@ -1,27 +1,15 @@
-import jwt  # noqa
+# def test_create_schema(db: Session) -> None:
+#     data = str(sweet_valid).encode("utf-8")
+#     content_str = data.decode("utf-8")
+#     t = yaml.safe_load(content_str)
+#     print(t)
+#     schema_manger = SchemaManager()
+#     schema = create_schema(db=db, data=data, schema_manager=schema_manger)
+#     assert schema.name == "test"
+#     assert schema.description == "test"
+#     assert schema.jsonschema == sweet_valid
 
-from app.core.config import settings  # noqa
-from app.initial_data import main
 
 if __name__ == "__main__":
-    # JWT_ALGORITHM = "HS256"
-    # JWT_TIMEDELTA = 30
-
-    # def create_access_token(
-    #     subject: str | Any,
-    #     expires_delta: timedelta = timedelta(minutes=settings.JWT_TIMEDELTA),
-    # ) -> str:
-    #     expire = datetime.now(timezone.utc) + expires_delta
-    #     to_encode = {"exp": expire, "sub": str(subject)}
-    #     encoded_jwt = jwt.encode(
-    #         to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
-    #     )
-    #     return encoded_jwt
-
-    # timedelta(minutes=settings.JWT_TIMEDELTA)
-    # token = create_access_token("test")
-    # returned = decode_access_token(token)
-    # print(returned)
-    # decode_access_token("test")
-    main()
+    # test_create_schema(db=None)
     print("here")

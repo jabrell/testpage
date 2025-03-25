@@ -18,6 +18,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+
     # JWT token settings
     JWT_SECRET: str = "secret"
     JWT_ALGORITHM: str = "HS256"
@@ -27,7 +29,6 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
-    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     # Postges settings
     POSTGRES_SERVER: str
@@ -52,6 +53,10 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: str = "jabmin"
     FIRST_SUPERUSER_PASSWORD: str = "jabmin_password"
     FIRST_SUPERUSER_MAIL: str = "test@example.com"
+
+    # settings for schema storage
+    SCHEMA_STORAGE_TYPE: Literal["local"] = "local"
+    SCHEMA_STORAGE_PATH: str
     # Email settings
     # SMTP_TLS: bool = True
     # SMTP_SSL: bool = False
