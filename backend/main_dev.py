@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.api.crud.schema import create_schema
 from app.schema_manager import SchemaManager
-from tests.schema_manager.settings import sweet_valid
+from tests.schema.settings import sweet_valid
 
 
 def test_create_schema(db: Session) -> None:

@@ -1,36 +1,32 @@
-import json
-
-import yaml
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, UploadFile, status
 from sqlmodel import select
 
+from app.api.crud.schema import create_schema
 from app.api.deps import SchemaManagerDep, SessionDep
 from app.models.schema import RawJsonSchema
 
 router = APIRouter(prefix="/schema", tags=["schema"])
 
 
-@router.post("/", response_model=RawJsonSchema)
-async def create_schema(
+@router.post(
+    "/",
+    response_model=RawJsonSchema,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Cannot create schema"},
+        status.HTTP_201_CREATED: {"description": "User created"},
+    },
+)
+async def create_schema_api(
     file: UploadFile, session: SessionDep, schema_manager: SchemaManagerDep
 ):
     try:
-        if file.content_type == "application/json":
-            data = json.loads(await file.read())
-        elif file.content_type in ["application/x-yaml", "text/yaml"]:
-            data = yaml.safe_load(await file.read())
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported file type")
-
-        schema = RawJsonSchema(
-            name=data["name"], description=data["description"], schema=data
-        )
-        session.add(schema)
-        session.commit()
-        session.refresh(schema)
+        schema = create_schema(db=session, data=file, schema_manager=schema_manager)
         return schema
-    except (json.JSONDecodeError, yaml.YAMLError, KeyError) as e:
-        raise HTTPException(status_code=400, detail="Invalid file content") from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400, detail="Cannot create schema" + str(e)
+        ) from e
 
 
 @router.get("/{schema_id}", response_model=RawJsonSchema)
