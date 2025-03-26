@@ -5,16 +5,26 @@ from app.core.security import hash_password, verify_password
 from app.models.user import User, UserCreate, UserGroup
 
 
-def get_user(*, username: str, session: Session) -> User | None:
-    """Get user by username or email address.
+def get_user(
+    *, user_id: int | None = None, username: str | None = None, session: Session
+) -> User | None:
+    """Get user by id or username or email address. Either user_id or username
+    should be provided. If both are provided, user_id will be used.
 
     Args:
+        user_id (int): user id
         username (str): username of the user or the mail address
         session (Session): db session object
 
     Returns:
         User: user object if found, None otherwise
     """
+    if not (username or user_id):
+        raise ValueError("Either user_id or username must be provided.")
+    if user_id:
+        # try to get the user by id
+        res = session.get(User, user_id)
+        return res
     # try to get the user by username
     res = session.exec(
         select(User).filter(or_(User.username == username, User.email == username))

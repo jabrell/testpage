@@ -26,8 +26,7 @@ async def login_for_access_token(
 ) -> Token:
     """Get JWT access token for a user."""
     try:
-        # TODO add logging
-        _ = authenticate_user(
+        user = authenticate_user(
             username=form_data.username, password=form_data.password, session=session
         )
     except (UserNotFound, InvalidPassword):
@@ -36,5 +35,6 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         ) from None
-    token = create_access_token(form_data.username)
+
+    token = create_access_token(user.id)
     return Token(access_token=token, token_type="bearer")

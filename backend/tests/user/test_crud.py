@@ -7,13 +7,32 @@ from app.core.config import settings
 from app.core.exceptions import InvalidPassword, UserNotFound
 from app.models.user import UserCreate, UserGroup
 
+from ..conftest import admin_user_properties, standard_user_properties  # noqa
+
 fake = Faker()
 
 
-def test_user_get(db: Session):
-    user = get_user(username=settings.FIRST_SUPERUSER_MAIL, session=db)
-    assert user.username == settings.FIRST_SUPERUSER
-    assert user.email == settings.FIRST_SUPERUSER_MAIL
+def test_user_get_by_mail(db: Session):
+    user = get_user(username=admin_user_properties["email"], session=db)
+    assert user.username == admin_user_properties["username"]
+    assert user.email == admin_user_properties["email"]
+
+
+def test_get_user_by_id(db: Session):
+    user = get_user(user_id=admin_user_properties["id"], session=db)
+    assert user.username == admin_user_properties["username"]
+    assert user.email == admin_user_properties["email"]
+
+
+def test_get_user_by_username(db: Session):
+    user = get_user(username=admin_user_properties["username"], session=db)
+    assert user.username == admin_user_properties["username"]
+    assert user.email == admin_user_properties["email"]
+
+
+def test_get_user_raises(db: Session):
+    with pytest.raises(ValueError):
+        get_user(session=db)
 
 
 def test_create_user(db: Session):

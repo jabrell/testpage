@@ -80,6 +80,7 @@ def test_get_current_user_invalid_token(mocker, mock_session):
     with pytest.raises(HTTPException) as exc_info:
         get_current_user(session=mock_session, token="invalid_token")
     assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
+    assert "Token expired or invalid" in exc_info.value.detail
 
 
 def test_get_current_user_not_found(mocker, mock_session):
@@ -110,4 +111,4 @@ def test_get_current_user_token_expired(mocker, mock_session, mock_user):
     with pytest.raises(HTTPException) as exc_info:
         get_current_user(session=mock_session, token=token)
     assert exc_info.value.status_code == status.HTTP_403_FORBIDDEN
-    assert "Token has expired" in exc_info.value.detail
+    assert "Token expired or invalid" in exc_info.value.detail

@@ -4,7 +4,7 @@ from collections.abc import Generator
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine, select
+from sqlmodel import Session, SQLModel, create_engine
 
 from app.api.deps import get_db
 from app.core.config import settings
@@ -29,11 +29,26 @@ test_engine = create_engine(
     poolclass=StaticPool,
 )
 
-# a standard user
-standard_user_settings = {
+# some test data
+admin_group = UserGroup(id=1, name="admin", description="Admin group")
+standard_group = UserGroup(id=2, name="standard", description="Standard group")
+admin_user_properties = {
+    "id": 1,
+    "username": settings.FIRST_SUPERUSER,
+    "email": settings.FIRST_SUPERUSER_MAIL,
+    "password": hash_password(settings.FIRST_SUPERUSER_PASSWORD),
+    "usergroup_id": 1,
+    "is_superuser": True,
+    "is_active": True,
+}
+standard_user_properties = {
+    "id": 2,
     "username": "Tracy",
-    "password": "Chapman",
+    "password": hash_password("Chapman"),
     "email": "tracy@chapman.com",
+    "usergroup_id": 2,
+    "is_active": True,
+    "is_superuser": False,
 }
 
 
@@ -46,25 +61,10 @@ def pytest_sessionstart():
     SQLModel.metadata.create_all(test_engine)
     # add some user groups
     with Session(test_engine) as s:
-        s.add(UserGroup(name="admin", description="Admin group"))
-        s.add(UserGroup(name="standard", description="Standard group"))
-        # add admin and standard user
-        group_id = s.exec(select(UserGroup.id).where(UserGroup.name == "admin")).first()
-        admin_user = User(
-            username=settings.FIRST_SUPERUSER,
-            email=settings.FIRST_SUPERUSER_MAIL,
-            password=hash_password(settings.FIRST_SUPERUSER_PASSWORD),
-            usergroup_id=group_id,
-            is_superuser=True,
-            is_active=True,
-        )
-        group_id = s.exec(
-            select(UserGroup.id).where(UserGroup.name == "standard")
-        ).first()
-        standard_user = User(**standard_user_settings, usergroup_id=group_id)
-        standard_user.password = hash_password(standard_user.password)
-        s.add(admin_user)
-        s.add(standard_user)
+        s.add(admin_group)
+        s.add(standard_group)
+        s.add(User(**admin_user_properties))
+        s.add(User(**standard_user_properties))
         s.commit()
 
 

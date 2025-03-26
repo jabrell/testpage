@@ -13,7 +13,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 app.add_middleware(RequestLoggingMiddleware)
 
 # mount the flask app
-app.mount("/webui/", WSGIMiddleware(flask_app))
+app.mount("/webui/", WSGIMiddleware(flask_app))  # types: ignore
 
 
 @app.get("/")

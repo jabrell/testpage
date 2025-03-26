@@ -1,14 +1,14 @@
-import logging
 from collections.abc import Generator
 from typing import Annotated
 
-import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session, select
 
 from app.core.config import settings
 from app.core.db import engine
+from app.core.exceptions import InvalidTokenError
+from app.core.security import decode_access_token
 from app.models import TokenPayload, User
 from app.schema_manager import SchemaManager
 
@@ -35,20 +35,18 @@ TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 def get_current_user(session: SessionDep, token: TokenDep) -> User:
     try:
-        payload = jwt.decode(
-            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
-        )
+        payload = decode_access_token(token)
         token_data = TokenPayload(**payload)
-    except jwt.ExpiredSignatureError:
+    except InvalidTokenError:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Token has expired"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Token expired or invalid"
         ) from None
-    except Exception:
+    except Exception:  # pragma: no cover
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         ) from None
-    q = select(User).where(User.username == token_data.sub)
+    q = select(User).where(User.id == token_data.sub)
     user = session.exec(q).first()
     if not user:
         raise HTTPException(
@@ -61,8 +59,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def is_admin_user(current_user: CurrentUser) -> User:
-    logging.info(f"current_user: {current_user}")
-    if current_user.usergroup.name != "admin":
+    if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have the necessary permissions",

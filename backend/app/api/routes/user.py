@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 
 from app.api.crud.user import create_user, delete_user, get_user
-from app.api.deps import SessionDep, is_admin_user
-from app.models.user import UserCreate, UserGroup, UserPublic
+from app.api.deps import CurrentUser, SessionDep, is_admin_user
+from app.models.user import User, UserCreate, UserGroup, UserPublic
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -81,3 +81,42 @@ async def delete_user_api(
         session (SessionDep): Database session.
     """
     delete_user(user_id=user_id, session=session)
+
+
+@router.get("/me", response_model=User)
+def read_user_me(current_user: CurrentUser) -> User:
+    """
+    Get current user.
+
+    Returns:
+        User: Current user data.
+    """
+    return current_user
+
+
+@router.get("/{user_id}", response_model=User)
+def read_user(user_id: int, current_user: CurrentUser, session: SessionDep) -> User:
+    """
+    Get user by id
+
+    Args:
+        user_id (int | str): User id or mail address.
+
+    Returns:
+        User: User data.
+    """
+    if user_id == current_user.id:
+        return current_user
+    if current_user.is_superuser:
+        user = get_user(user_id=user_id, session=session)
+        if user:
+            return user
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Not enough permissions",
+    )

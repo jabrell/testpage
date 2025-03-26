@@ -35,6 +35,7 @@ dev = [
     "types-jsonschema>=4.23.0.20241208",
     "types-passlib>=1.7.7.20250319",
     "types-pyyaml>=6.0.12.20241230",
+    "types-requests>=2.32.0.20250306",
 ]
 
 
@@ -80,4 +81,4 @@ exclude_lines = ["pragma: no cover"]
 addopts = "-W ignore::DeprecationWarning"
 
 [tool.mypy]
-exclude = ["tests/", "app/webui/*"]
+exclude = ["tests/", "app/webui/*", "app/main.py"]
