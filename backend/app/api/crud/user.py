@@ -5,20 +5,43 @@ from app.core.security import hash_password, verify_password
 from app.models.user import User, UserCreate, UserGroup
 
 
-def get_user(*, username: str, session: Session) -> User | None:
-    """Get user by username or email address.
+def read_user(
+    *, user_id: int | None = None, username: str | None = None, session: Session
+) -> User | None:
+    """Get user by id or username or email address. Either user_id or username
+    should be provided. If both are provided, user_id will be used.
 
     Args:
+        user_id (int): user id
         username (str): username of the user or the mail address
         session (Session): db session object
 
     Returns:
         User: user object if found, None otherwise
     """
+    if not (username or user_id):
+        raise ValueError("Either user_id or username must be provided.")
+    if user_id:
+        # try to get the user by id
+        res = session.get(User, user_id)
+        return res
     # try to get the user by username
     res = session.exec(
         select(User).filter(or_(User.username == username, User.email == username))
     ).first()
+    return res
+
+
+def read_all_users(*, session: Session) -> list[User]:
+    """Get all users.
+
+    Args:
+        session (Session): Database session.
+
+    Returns:
+        list[User]: List of users.
+    """
+    res = list(session.exec(select(User)).all())
     return res
 
 
@@ -86,7 +109,7 @@ def authenticate_user(*, username: str, password: str, session: Session) -> User
         UserNotFound: If the user is not found in the database.
         InvalidPassword: If the password is incorrect.
     """
-    user = get_user(username=username, session=session)
+    user = read_user(username=username, session=session)
     if not user:
         raise UserNotFound()
     if not verify_password(password, user.password):

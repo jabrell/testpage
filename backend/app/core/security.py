@@ -30,14 +30,17 @@ def create_access_token(
     return encoded_jwt
 
 
-def decode_access_token(token: str) -> dict[str, Any] | None:
+def decode_access_token(token: str) -> dict[str, Any]:
     """Decode an access token to extract user information.
 
     Args:
         token (str): The JWT token to be decoded.
 
     Returns:
-        dict[str, Any] | None: The decoded JWT token if valid, else None.
+        dict[str, Any]: The decoded JWT token if valid.
+
+    Raises:
+        InvalidTokenError: If the token is invalid or expired
     """
     try:
         decoded = jwt.decode(

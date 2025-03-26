@@ -58,7 +58,6 @@ def test_create_schema(
 def test_create_schema_wrong_file_type(
     admin_token_header: dict[str, str], fn: str = "test.txt"
 ) -> None:
-    # RawJsonSchema
     fn_full = tmp_path / fn
     with open(fn_full, "w") as f:
         json.dump(sweet_valid, f)

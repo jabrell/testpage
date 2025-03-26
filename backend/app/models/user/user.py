@@ -17,6 +17,8 @@ class UserCreate(UserPublic):
     id: int | None = None
     password: str
     usergroup_name: str = "standard"
+    is_superuser: bool = False
+    is_active: bool = True
 
     def get_public(self):
         return UserPublic(**self.model_dump())
@@ -26,6 +28,8 @@ class User(UserCreate, table=True, mixins=[TimestampMixin]):
     id: int | None = Field(default=None, primary_key=True)
     usergroup_id: int = Field(foreign_key="usergroup.id")
     usergroup: UserGroup = Relationship(back_populates="users")
+    is_superuser: bool = Field(default=False)
+    is_active: bool = Field(default=True)
 
     def get_public(self):
         return UserPublic(**self.model_dump())

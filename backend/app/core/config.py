@@ -50,13 +50,28 @@ class Settings(BaseSettings):
         )
 
     # settings for a first user
-    FIRST_SUPERUSER: str = "jabmin"
-    FIRST_SUPERUSER_PASSWORD: str = "jabmin_password"
-    FIRST_SUPERUSER_MAIL: str = "test@example.com"
+    FIRST_SUPERUSER: str
+    FIRST_SUPERUSER_PASSWORD: str
+    FIRST_SUPERUSER_MAIL: str
 
     # settings for schema storage
     SCHEMA_STORAGE_TYPE: Literal["local"] = "local"
     SCHEMA_STORAGE_PATH: str
+
+    # Backend settings
+    BACKEND_IP: str
+    BACKEND_PORT: int
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def BACKEND_URL(self) -> str:
+        return f"{self.BACKEND_IP}:{self.BACKEND_PORT}"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def BACKEND_URL_API_V1(self) -> str:
+        return f"{self.BACKEND_IP}:{self.BACKEND_PORT}{self.API_V1_STR}/"
+
     # Email settings
     # SMTP_TLS: bool = True
     # SMTP_SSL: bool = False
@@ -80,12 +95,6 @@ class Settings(BaseSettings):
     # @property
     # def emails_enabled(self) -> bool:
     #     return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
-
-    # # TODO: update type to EmailStr when sqlmodel supports it
-    # EMAIL_TEST_USER: str = "test@example.com"
-    # # TODO: update type to EmailStr when sqlmodel supports it
-    # FIRST_SUPERUSER: str
-    # FIRST_SUPERUSER_PASSWORD: str
 
 
 settings = Settings()  # type: ignore
