@@ -2,11 +2,13 @@ from functools import wraps
 
 from flask import redirect, session, url_for
 
-FASTAPI_URL = "http://127.0.0.1:8000/api/v1/"  # Update with your FastAPI URL
+from app.core.config import settings
+
+# FASTAPI_URL = "http://127.0.0.1:8000/api/v1/"  # Update with your FastAPI URL
 
 
 def get_fastapi_url() -> str:
-    return FASTAPI_URL
+    return settings.BACKEND_URL_API_V1
 
 
 def admin_required(f):
