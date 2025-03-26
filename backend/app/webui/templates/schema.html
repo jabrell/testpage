@@ -6,19 +6,21 @@
 
 <div class="container mt-5">
     <h2 class="mb-4">Upload New Schema</h2>
-    <form method="post" action="{{ url_for('schemas') }}" enctype="multipart/form-data">
+    <form method="post" action="{{ url_for('schemas.schemas') }}" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="file" class="form-label">Please upload new schema (YAML or JSON):</label>
             <input class="form-control" type="file" id="file" name="file" accept=".yaml,.json" required>
         </div>
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="alert alert-danger">
-              {% for category, message in messages %}
-                {{ message }}
-              {% endfor %}
-            </div>
-          {% endif %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if 'schema' in category %}
+                    <div class="alert alert-danger">
+                        {{ message }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         {% endwith %}
         <button type="submit" class="btn btn-primary">Upload</button>
     </form>
@@ -30,6 +32,7 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Active</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -41,7 +44,14 @@
                     <td>{{ schema.name }}</td>
                     <td>{{ schema.description }}</td>
                     <td>
-                        <a href="{{ url_for('view_schema', schema_id=schema.id) }}" class="btn btn-secondary">View JSON</a>
+                        {% if schema.is_active %}
+                            <span>✔</span>
+                        {% else %}
+                            <span>✘</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('schemas.view_schema', schema_id=schema.id) }}" class="btn btn-secondary">View JSON</a>
                     </td>
                 </tr>
                 {% endfor %}

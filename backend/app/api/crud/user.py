@@ -32,6 +32,19 @@ def get_user(
     return res
 
 
+def get_all_users(*, session: Session) -> list[User]:
+    """Get all users.
+
+    Args:
+        session (Session): Database session.
+
+    Returns:
+        list[User]: List of users.
+    """
+    res = list(session.exec(select(User)).all())
+    return res
+
+
 def delete_user(*, user_id: int, session: Session) -> bool:
     """Delete a user by id.
 

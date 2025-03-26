@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 
-from app.api.crud.user import create_user, delete_user, get_user
+from app.api.crud.user import create_user, delete_user, get_all_users, get_user
 from app.api.deps import CurrentUser, SessionDep, is_admin_user
 from app.models.user import User, UserCreate, UserGroup, UserPublic
 
@@ -84,7 +84,7 @@ async def delete_user_api(
 
 
 @router.get("/me", response_model=User)
-def read_user_me(current_user: CurrentUser) -> User:
+async def read_user_me(current_user: CurrentUser) -> User:
     """
     Get current user.
 
@@ -95,7 +95,9 @@ def read_user_me(current_user: CurrentUser) -> User:
 
 
 @router.get("/{user_id}", response_model=User)
-def read_user(user_id: int, current_user: CurrentUser, session: SessionDep) -> User:
+async def read_user(
+    user_id: int, current_user: CurrentUser, session: SessionDep
+) -> User:
     """
     Get user by id
 
@@ -120,3 +122,13 @@ def read_user(user_id: int, current_user: CurrentUser, session: SessionDep) -> U
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Not enough permissions",
     )
+
+
+@router.get(
+    "/",
+    response_model=list[User],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(is_admin_user)],
+)
+async def read_users(session: SessionDep) -> list[User]:
+    return get_all_users(session=session)

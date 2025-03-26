@@ -17,6 +17,8 @@ class UserCreate(UserPublic):
     id: int | None = None
     password: str
     usergroup_name: str = "standard"
+    is_superuser: bool = False
+    is_active: bool = True
 
     def get_public(self):
         return UserPublic(**self.model_dump())

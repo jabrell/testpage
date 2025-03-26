@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %} Users {% endblock title %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="mb-4">Register New User</h2>
+    <form action="{{ url_for('users.users') }}" method="post">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="mb-3">
+            <label for="usergroup" class="form-label">User Group</label>
+            <select class="form-select" id="usergroup" name="usergroup_name" required>
+                <option value="standard">Standard</option>
+                <option value="admin">Admin</option>
+                <!-- Add more user groups as needed -->
+            </select>
+        </div>
+        <div class="d-flex mb-3">
+            <div class="me-3 form-check">
+                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                <label class="form-check-label" for="is_active">Active</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="is_superuser" name="is_superuser" unchecked>
+                <label class="form-check-label" for="is_superuser">Superuser</label>
+            </div>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if 'user' in category %}
+                    <div class="alert alert-danger">
+                        {{ message }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+
+    <h2 class="mt-5 mb-4">Existing Users</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>User Group</th>
+                <th>Active</th>
+                <th>Superuser</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users %}
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.usergroup_name }}</td>
+                    <td>
+                        {% if user.is_active %}
+                            <span>✔</span>
+                        {% else %}
+                            <span>✘</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_superuser %}
+                            <span>✔</span>
+                        {% else %}
+                            <span>✘</span>
+                        {% endif %}
+                    </td>
+                    <td>tbd</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">No users available.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock content %}
