@@ -15,7 +15,10 @@
             {% if messages %}
                 {% for category, message in messages %}
                     {% if 'schema' in category %}
-                    <div class="alert alert-danger">
+                    <div class="alert
+                            {% if 'success' in message %} alert-success
+                            {% else %}  alert-danger
+                            {% endif %}">
                         {{ message }}
                     </div>
                     {% endif %}

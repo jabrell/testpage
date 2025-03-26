@@ -5,7 +5,7 @@ from app.core.security import hash_password, verify_password
 from app.models.user import User, UserCreate, UserGroup
 
 
-def get_user(
+def read_user(
     *, user_id: int | None = None, username: str | None = None, session: Session
 ) -> User | None:
     """Get user by id or username or email address. Either user_id or username
@@ -32,7 +32,7 @@ def get_user(
     return res
 
 
-def get_all_users(*, session: Session) -> list[User]:
+def read_all_users(*, session: Session) -> list[User]:
     """Get all users.
 
     Args:
@@ -109,7 +109,7 @@ def authenticate_user(*, username: str, password: str, session: Session) -> User
         UserNotFound: If the user is not found in the database.
         InvalidPassword: If the password is incorrect.
     """
-    user = get_user(username=username, session=session)
+    user = read_user(username=username, session=session)
     if not user:
         raise UserNotFound()
     if not verify_password(password, user.password):

@@ -14,8 +14,3 @@ app.add_middleware(RequestLoggingMiddleware)
 
 # mount the flask app
 app.mount("/webui/", WSGIMiddleware(flask_app))  # types: ignore
-
-
-@app.get("/")
-def read_root():
-    return "Hello Automated World"

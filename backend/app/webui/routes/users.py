@@ -49,3 +49,21 @@ def users(header: dict[str, Any]):
         users = response.json()
         return render_template("user.html", users=users)
     return "Failed to fetch users", 500
+
+
+@user_bp.route("/users/delete/<int:user_id>")
+@admin_required
+def delete_user(user_id: int, header: dict[str, Any]):
+    response = requests.delete(
+        f"{get_fastapi_url()}user/{user_id}",
+        headers=header,
+    )
+    if response.status_code == status.HTTP_200_OK:
+        flash("User deleted successfully", "user-success")
+    else:
+        try:
+            error_message = response.json().get("detail", "An error occurred")
+            flash(error_message, "user-error")
+        except Exception:
+            flash("An error occurred", "user-error")
+    return redirect(url_for("users.users"))
