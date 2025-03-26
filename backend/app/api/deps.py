@@ -39,6 +39,10 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
         token_data = TokenPayload(**payload)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Token has expired"
+        ) from None
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

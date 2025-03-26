@@ -1,28 +1,34 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Main Dev",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main_dev.py",
-            "cwd": "${workspaceFolder}/backend",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Python Debugger: FastAPI",
-            "type": "debugpy",
-            "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "app.main:app",
-                "--reload",
-            ],
-            "cwd": "${workspaceFolder}/backend",
-            "jinja": true
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Main Dev",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "main_dev.py",
+      "cwd": "${workspaceFolder}/backend",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Python Debugger: FastAPI",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--reload"],
+      "cwd": "${workspaceFolder}/backend",
+      "jinja": true
+    },
+    {
+      "name": "Python: Pytest",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["${workspaceFolder}/backend/tests/test_dependencies.py"],
+      "justMyCode": true,
+      "console": "integratedTerminal"
+    }
+  ]
 }
