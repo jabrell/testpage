@@ -22,7 +22,7 @@ def test_column_from_field_no_constraint_wrong_type():
         SchemaManager._field_to_columns(field=field, db_types={})
 
 
-@pytest.mark.parametrize("dialect", ["sqlite", "postgres"])
+@pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
 def test_model_from_schema(dialect):
     schema = sweet_valid
     my_manager = SchemaManager()

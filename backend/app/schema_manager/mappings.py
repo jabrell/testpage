@@ -13,7 +13,7 @@ map_db_types = {
         "time": Time,
         "year": Integer,
     },
-    "postgres": {
+    "postgresql": {
         "any": Text,
         "boolean": Boolean,
         "date": Date,

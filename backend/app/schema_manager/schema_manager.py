@@ -11,7 +11,7 @@ from .mappings import map_db_types
 __all__ = ["SchemaManager"]
 
 SchemaFileType = str | Path | dict[str, Any] | bytes
-DbDialect = Literal["sqlite", "postgres"]
+DbDialect = Literal["sqlite", "postgresql"]
 
 BASE_SCHEMA = Path(__file__).parent / "meta_schemas" / "frictionlessv1.json"
 SWEET_EXTENSIONS = [Path(__file__).parent / "meta_schemas" / "sweet_metastandard.yaml"]

@@ -5,7 +5,7 @@ from app.schema_manager import SchemaManager
 
 
 def create_schema(
-    db: Session, data: bytes, schema_manager: SchemaManager
+    *, db: Session, data: bytes, schema_manager: SchemaManager
 ) -> TableSchemaPublic:
     """Writes a schema to the database. The schema is validated against the
         meta-schema. The schema is not activated by default.
@@ -35,7 +35,7 @@ def create_schema(
 
 
 def read_schema(
-    db: Session, schema_id: int | None = None, schema_name: str | None = None
+    *, db: Session, schema_id: int | None = None, schema_name: str | None = None
 ) -> TableSchema:
     """Read a schema from the database. Either the schema_id or schema_name must
         be provided but not both.
@@ -66,7 +66,7 @@ def read_schema(
 
 
 def delete_schema(
-    db: Session, schema_id: int | None = None, schema_name: str | None = None
+    *, db: Session, schema_id: int | None = None, schema_name: str | None = None
 ) -> bool:
     """Delete a schema by id.
 
@@ -89,7 +89,7 @@ def delete_schema(
 
 
 def toggle_schema(
-    db: Session, schema_id: int | None = None, schema_name: str | None = None
+    *, db: Session, schema_id: int | None = None, schema_name: str | None = None
 ) -> bool:
     """(De)-Activate a schema by id or name.
 
@@ -112,6 +112,7 @@ def toggle_schema(
 
 
 def create_table_from_schema(
+    *,
     db: Session,
     schema_manager: SchemaManager,
     schema_id: int | None = None,

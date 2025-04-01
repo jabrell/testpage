@@ -122,7 +122,10 @@ def toggle_schema_api(schema_id: int, session: SessionDep):
 def create_table_for_schema(
     schema_id: int, session: SessionDep, schema_manager: SchemaManagerDep
 ):
-    """Create the table corresponding to the given schema.
+    """Create the table corresponding to the given schema. The table will be created
+        in the database. The table name will be the same as the schema name.
+        The table will be created with the columns defined in the schema.
+        The table will be created with a primary key column named "id_".
 
     Args:
         schema_id in: The schema ID.
@@ -131,7 +134,10 @@ def create_table_for_schema(
     try:
         schema_id = int(schema_id)
         create_table_from_schema(
-            db=session, schema_id=schema_id, schema_manager=schema_manager
+            db=session,
+            schema_id=schema_id,
+            schema_manager=schema_manager,
+            id_column_name="id_",
         )
     except ValueError as e:
         msg = str(e)

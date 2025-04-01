@@ -17,5 +17,5 @@ sweet_valid = {
     "name": "testsweet",
     "title": "test",
     "description": "test",
-    "primaryKey": ["test"],
+    "primaryKey": ["id"],
 }
