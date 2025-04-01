@@ -1,9 +1,12 @@
+from unittest.mock import patch
+
 import pytest
-from sqlmodel import Session
+from sqlmodel import Session, inspect, text
 
 from app.api.crud.schema import (
     activate_schema,
     create_schema,
+    create_table_from_schema,
     delete_schema,
     read_schema,
 )
@@ -121,3 +124,22 @@ def test_activate_schema_by_name(
 
 def test_activate_schema_raises(db: Session) -> None:
     assert not activate_schema(db=db, schema_name="wrong name")
+
+
+def test_create_table_from_schema(db: Session, schema_manager: SchemaManager) -> None:
+    return_value = TableSchema(
+        name=sweet_valid["name"],
+        description=sweet_valid["description"],
+        jsonschema=sweet_valid,
+    )
+    with patch("app.api.crud.schema.read_schema", return_value=return_value):
+        create_table_from_schema(db=db, schema_id=1, schema_manager=schema_manager)
+        assert sweet_valid["name"] in inspect(db.bind).get_table_names()
+
+        # running again should not raise an error as the table already exists
+        with pytest.raises(ValueError):
+            create_table_from_schema(db=db, schema_id=1, schema_manager=schema_manager)
+
+    # delete the table after the test
+    db.exec(text(f"DROP TABLE {sweet_valid['name']}"))
+    db.commit()

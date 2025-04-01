@@ -1,13 +1,17 @@
 import json
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import jsonschema
 import yaml  # type: ignore
+from sqlalchemy import Column
+
+from .mappings import map_db_types
 
 __all__ = ["SchemaManager"]
 
 SchemaFileType = str | Path | dict[str, Any] | bytes
+DbDialect = Literal["sqlite", "postgres"]
 
 BASE_SCHEMA = Path(__file__).parent / "meta_schemas" / "frictionlessv1.json"
 SWEET_EXTENSIONS = [Path(__file__).parent / "meta_schemas" / "sweet_metastandard.yaml"]
@@ -143,3 +147,76 @@ class SchemaManager:
         schema = SchemaManager.read_schema_from_file(schema)
         jsonschema.validate(instance=schema, schema=self._metaschema)
         return schema
+
+    def model_from_schema(
+        self,
+        schema: SchemaFileType,
+        validate_schema: bool = False,
+        db_dialect: DbDialect = "sqlite",
+        create_id_column: str | None = None,
+    ) -> dict[str, Any]:
+        """Create sqlmodel inputs from a given schema
+
+        Args:
+            schema (str | Path | dict[str, Any]): Schema
+            validate_schema (bool, optional): If True, the schema is validated
+                Defaults to False.
+            db_dialect (DbDialect, optional): Database dialect. Defaults to "sqlite".
+                Can be either "sqlite" or "postgres".
+            create_id_column (str | None, optional): If provided, a column with the
+                given name is added to the table and defined as the primary key.
+                Defaults to None.
+
+        Returns:
+            dict[str, Any]: A dictionary with the table name and columns
+                The table name is the name of the schema and the columns are
+                the columns of the table. The columns are sqlalchemy.Column objects.
+        """
+        # read and validate the schema
+        my_schema = self.read_schema_from_file(schema)
+        if validate_schema:
+            my_schema = self.validate_schema(my_schema)
+
+        # get the correct db dialect
+        db_types = map_db_types.get(db_dialect)
+        if db_types is None:
+            raise ValueError(f"Database dialect {db_dialect} is not supported")
+        db_types = cast(dict[str, Any], db_types)
+        # metadata for the table
+        table_name = my_schema["name"]
+        table_columns = [
+            SchemaManager._field_to_columns(field=field, db_types=db_types)
+            for field in my_schema["fields"]
+        ]
+        if create_id_column:
+            # add an id column to the table
+            table_columns.insert(
+                0, Column(create_id_column, type_=db_types["integer"], primary_key=True)
+            )
+
+        return {
+            "name": table_name,
+            "columns": table_columns,
+        }
+
+    @staticmethod
+    def _field_to_columns(field: dict[str, Any], db_types: dict[str, Any]) -> Column:
+        """Convert a field in the schema to sqlalchemy column
+
+        Args:
+            field (dict[str, Any]): Field in the schema
+            db_types (dict[str, Any]): Database types
+
+        Returns:
+            Column: SQLAlchemy column object
+        """
+        # Todo: add support for constraints
+        field_name = field["name"]
+        field_type = field["type"]
+        if field_type not in db_types:
+            raise ValueError(
+                f"Field type {field_type} is not supported for given db dialect"
+            )
+        db_field_type = db_types[field_type]
+        column: Column = Column(field_name, type_=db_field_type)
+        return column
