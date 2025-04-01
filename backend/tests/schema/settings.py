@@ -14,7 +14,7 @@ sweet_valid = {
         {"name": "id", "title": "Identifier", "type": "integer"},
         {"name": "name", "title": "Name", "type": "string"},
     ],
-    "name": "test",
+    "name": "testsweet",
     "title": "test",
     "description": "test",
     "primaryKey": ["test"],

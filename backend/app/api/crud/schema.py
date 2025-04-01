@@ -88,10 +88,10 @@ def delete_schema(
         return False
 
 
-def activate_schema(
+def toggle_schema(
     db: Session, schema_id: int | None = None, schema_name: str | None = None
 ) -> bool:
-    """Activate a schema by id or name.
+    """(De)-Activate a schema by id or name.
 
     Args:
         db (Session): Database session.
@@ -99,14 +99,13 @@ def activate_schema(
         schema_name (str): Schema name.
 
     Returns:
-        bool: True if the schema was activated, False otherwise.
+        bool: True if the schema was toggled, False otherwise.
     """
     try:
         schema = read_schema(db=db, schema_id=schema_id, schema_name=schema_name)
-        schema.is_active = True
+        schema.is_active = not schema.is_active
         db.commit()
         return True
-        # TODO Add logic to create the database table
     except Exception:
         db.rollback()
         return False
@@ -149,9 +148,14 @@ def create_table_from_schema(
     # TODO: it would be better to handle table creation with alembic
     try:
         metadata = SQLModel.metadata
-        Table(model_input["name"], metadata, *model_input["columns"])
+        # FIXME: this is a workaround to avoid the error "Table already exists"
+        # during test
+        Table(
+            model_input["name"], metadata, *model_input["columns"], extend_existing=True
+        )
         # Create the table in the database
         metadata.create_all(db.bind)  # type: ignore[arg-type]
     except Exception as e:  # pragma: no cover
         db.rollback()
+        print(e)
         raise ValueError("Could not create table") from e

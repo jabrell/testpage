@@ -5,7 +5,7 @@ import pytest
 import yaml
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, text
 
 from app.api.crud.schema import create_schema
 from app.api.routes.schema import router as schema_router
@@ -171,5 +171,64 @@ def test_list_schemas(db: Session, schema_manager: SchemaManager) -> None:
     print(response.json())
     print(schema.get_public())
     assert response.json() == [schema.get_public().model_dump()]
+    db.delete(schema)
+    db.commit()
+
+
+def test_toggle_schema(
+    db: Session, schema_manager: SchemaManager, admin_token_header: dict[str, str]
+) -> None:
+    schema = create_schema(db=db, data=sweet_valid, schema_manager=schema_manager)
+    db.refresh(schema)
+    assert not db.get(TableSchema, schema.id).is_active
+
+    # initially the schema is in-active so toggeling renders it active
+    response = client.post(
+        f"{url_schema}/{schema.id}/toggle", headers=admin_token_header
+    )
+    assert response.status_code == status.HTTP_200_OK
+    db.refresh(schema)
+    assert db.get(TableSchema, schema.id).is_active
+
+    response = client.post(
+        f"{url_schema}/{schema.id}/toggle", headers=admin_token_header
+    )
+    assert response.status_code == status.HTTP_200_OK
+    db.refresh(schema)
+    assert not db.get(TableSchema, schema.id).is_active
+
+    response = client.post(f"{url_schema}/1234234/toggle", headers=admin_token_header)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    db.delete(schema)
+    db.commit()
+
+
+def test_create_table_from_schema2(
+    db: Session, schema_manager: SchemaManager, admin_token_header
+) -> None:
+    # create a schema
+    schema = create_schema(db=db, data=sweet_valid, schema_manager=schema_manager)
+    response = client.post(
+        f"{url_schema}/{schema.id}/create_table",
+        headers=admin_token_header,
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+
+    # posting the same schema again should raise an error
+    response = client.post(
+        f"{url_schema}/{schema.id}/create_table",
+        headers=admin_token_header,
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # posting with non-existing schema id should raise an error
+    response = client.post(
+        f"{url_schema}/1234234/create_table",
+        headers=admin_token_header,
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    db.exec(text(f"DROP TABLE {sweet_valid['name']}"))
     db.delete(schema)
     db.commit()
