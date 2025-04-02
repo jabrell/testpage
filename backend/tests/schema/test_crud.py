@@ -1,11 +1,14 @@
+from unittest.mock import patch
+
 import pytest
-from sqlmodel import Session
+from sqlmodel import Session, inspect
 
 from app.api.crud.schema import (
-    activate_schema,
     create_schema,
+    create_table_from_schema,
     delete_schema,
     read_schema,
+    toggle_schema,
 )
 from app.models.schema import TableSchema
 from app.schema_manager import SchemaManager
@@ -25,8 +28,8 @@ def schema_manager() -> SchemaManager:
 
 def test_create_schema(db: Session, data: bytes, schema_manager: SchemaManager) -> None:
     schema = create_schema(db=db, data=data, schema_manager=schema_manager)
-    assert schema.name == "test"
-    assert schema.description == "test"
+    assert schema.name == sweet_valid["name"]
+    assert schema.description == sweet_valid["description"]
     assert schema.jsonschema == sweet_valid
     assert not schema.is_active
     db.delete(schema)
@@ -95,29 +98,62 @@ def test_delete_schema_false(db: Session) -> None:
     assert not delete_schema(db=db, schema_name="wrong name")
 
 
-def test_activate_schema_by_id(
+def test_toggle_schema_by_id(
     db: Session, data: bytes, schema_manager: SchemaManager
 ) -> None:
     schema = create_schema(db=db, data=data, schema_manager=schema_manager)
     assert not schema.is_active
-    assert activate_schema(db=db, schema_id=schema.id)
+    assert toggle_schema(db=db, schema_id=schema.id)
     schema = read_schema(db=db, schema_id=schema.id)
     assert schema.is_active
+    assert toggle_schema(db=db, schema_id=schema.id)
+    schema = read_schema(db=db, schema_id=schema.id)
+    assert not schema.is_active
     db.delete(schema)
     db.commit()
 
 
-def test_activate_schema_by_name(
+def test_toggle_schema_by_name(
     db: Session, data: bytes, schema_manager: SchemaManager
 ) -> None:
     schema = create_schema(db=db, data=data, schema_manager=schema_manager)
     assert not schema.is_active
-    assert activate_schema(db=db, schema_name=schema.name)
+    assert toggle_schema(db=db, schema_name=schema.name)
     schema = read_schema(db=db, schema_name=schema.name)
     assert schema.is_active
+    assert toggle_schema(db=db, schema_name=schema.name)
+    schema = read_schema(db=db, schema_name=schema.name)
+    assert not schema.is_active
     db.delete(schema)
     db.commit()
 
 
-def test_activate_schema_raises(db: Session) -> None:
-    assert not activate_schema(db=db, schema_name="wrong name")
+def test_toggle_schema_raises(db: Session) -> None:
+    assert not toggle_schema(db=db, schema_name="wrong name")
+
+
+def test_create_table_from_schema(db: Session, schema_manager: SchemaManager) -> None:
+    return_value = TableSchema(
+        name=sweet_valid["name"],
+        description=sweet_valid["description"],
+        jsonschema=sweet_valid,
+    )
+    with patch("app.api.crud.schema.read_schema", return_value=return_value):
+        create_table_from_schema(db=db, schema_id=1, schema_manager=schema_manager)
+        assert sweet_valid["name"] in inspect(db.bind).get_table_names()
+
+        # running again should not raise an error as the table already exists
+        with pytest.raises(ValueError):
+            create_table_from_schema(db=db, schema_id=1, schema_manager=schema_manager)
+
+    # delete the table after the test
+    from sqlmodel import SQLModel
+
+    table_name = sweet_valid["name"]
+    metadata = SQLModel.metadata
+    metadata.reflect(bind=db.bind)
+    tab = metadata.tables[table_name]
+    tab.drop(db.bind)
+    metadata.reflect(bind=db.bind)
+    print(metadata.tables)
+    db.commit()

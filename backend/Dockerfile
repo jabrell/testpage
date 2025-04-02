@@ -18,4 +18,6 @@ USER svcuser:svcuser
 EXPOSE 8000/tcp
 
 # Start the Python-based ASGI web server, uvicorn, listening on all network interfaces on port 8000/tcp. See https://docs.docker.com/reference/dockerfile/#cmd.
-CMD ["python", "-m", "uvicorn", "--app-dir", "./app", "main:app", "--host=0.0.0.0", "--port=8000"]
+# CMD ["python", "-m", "uvicorn", "--app-dir", "./app", "main:app", "--host=0.0.0.0", "--port=8000"]
+CMD ["fastapi", "run", "--workers", "4", "app/main.py"]
+

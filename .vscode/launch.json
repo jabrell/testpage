@@ -26,7 +26,7 @@
       "type": "debugpy",
       "request": "launch",
       "module": "pytest",
-      "args": ["${workspaceFolder}/backend/tests/test_dependencies.py"],
+      "args": ["backend/", "-k test_create_table_from_schema2"],
       "justMyCode": true,
       "console": "integratedTerminal"
     }

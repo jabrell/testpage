@@ -1,18 +1,51 @@
 services:
-  postgres:
+  postgres_db:
     image: postgres:latest
-    container_name: db_users
     restart: always
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    ports:
-      - "${POSTGRES_PORT}:5432"
-    #volumes:
-    #  - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
     networks:
       - my_network
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    ports:
+      - "${POSTGRES_PORT_MAPPED}:5432"
+    #volumes:
+    #  - postgres_data:/var/lib/postgresql/data
+
+  prestart:
+    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
+    build:
+      context: ./backend
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - my_network
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - POSTGRES_SERVER=postgres_db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - BACKEND_IP=${BACKEND_IP?Variable not set}
+      - BACKEND_PORT=${BACKEND_PORT?Variable not set}
+      - API_V1_STR=${API_V1_STR?Variable not set}
 
   adminer:
     image: adminer:latest
@@ -25,8 +58,35 @@ services:
     networks:
       - my_network
 
-#volumes:
-#  postgres_data:
+  backend:
+    image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
+    restart: always
+    build:
+      context: ./backend
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+      prestart:
+        condition: service_completed_successfully
+    networks:
+      - my_network
+    ports:
+      - "${BACKEND_PORT_MAPPED}:8000"
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - POSTGRES_SERVER=postgres_db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - BACKEND_IP=${BACKEND_IP?Variable not set}
+      - BACKEND_PORT=${BACKEND_PORT?Variable not set}
+      - API_V1_STR=${API_V1_STR?Variable not set}
 
 networks:
   my_network:
