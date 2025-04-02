@@ -45,7 +45,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - BACKEND_IP=${BACKEND_IP?Variable not set}
       - BACKEND_PORT=${BACKEND_PORT?Variable not set}
-      - API_V1_STR=${API_V1_STR?Variable not set}
 
   adminer:
     image: adminer:latest
@@ -86,7 +85,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - BACKEND_IP=${BACKEND_IP?Variable not set}
       - BACKEND_PORT=${BACKEND_PORT?Variable not set}
-      - API_V1_STR=${API_V1_STR?Variable not set}
 
 networks:
   my_network:
