@@ -59,8 +59,8 @@ class Settings(BaseSettings):
     SCHEMA_STORAGE_PATH: str
 
     # Backend settings
-    BACKEND_IP: str
-    BACKEND_PORT: int
+    BACKEND_IP: str = "localhost"
+    BACKEND_PORT: int = 8000
 
     @computed_field  # type: ignore[prop-decorator]
     @property
