@@ -37,11 +37,10 @@ def test_model_from_schema(dialect):
         assert field["name"] in [col.name for col in table["columns"]]
 
 
-@pytest.mark.parametrize("dialect", ["sqlite", "postgres"])
+@pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
 def test_model_from_schema_with_id(dialect):
     schema = sweet_valid
     my_manager = SchemaManager()
-
     table = my_manager.model_from_schema(
         schema, validate_schema=True, db_dialect=dialect, create_id_column="id_"
     )
