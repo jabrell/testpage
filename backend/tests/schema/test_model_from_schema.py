@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 from sqlalchemy import Integer
 
@@ -24,7 +26,8 @@ def test_column_from_field_no_constraint_wrong_type():
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
 def test_model_from_schema(dialect):
-    schema = sweet_valid
+    schema = deepcopy(sweet_valid)
+    del schema["primaryKey"]
     my_manager = SchemaManager()
 
     table = my_manager.model_from_schema(
@@ -39,7 +42,7 @@ def test_model_from_schema(dialect):
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
 def test_model_from_schema_with_id(dialect):
-    schema = sweet_valid
+    schema = deepcopy(sweet_valid)
     my_manager = SchemaManager()
     table = my_manager.model_from_schema(
         schema, validate_schema=True, db_dialect=dialect, create_id_column="id_"
@@ -53,7 +56,7 @@ def test_model_from_schema_with_id(dialect):
 
 
 def test_model_from_schema_raise_wrong_dialect():
-    schema = sweet_valid
+    schema = deepcopy(sweet_valid)
     my_manager = SchemaManager()
 
     with pytest.raises(ValueError):
@@ -65,3 +68,48 @@ def test_model_from_schema_raise_wrong_dialect():
         my_manager.model_from_schema(
             schema, validate_schema=False, db_dialect="wrong_dialect"
         )
+
+
+@pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
+def test_model_from_schema_with_primary_key(dialect):
+    schema = deepcopy(sweet_valid)
+    key_cols = ["id", "name"]
+    schema["primaryKey"] = key_cols
+    my_manager = SchemaManager()
+    table = my_manager.model_from_schema(
+        schema, validate_schema=True, db_dialect=dialect, create_id_column="sweet_id"
+    )
+    # check the primary key constraints, i.e., each column in the primary key is
+    # not nullable and and one UniqueContraint enforces that the combination of
+    # the columns is unique
+    for col in table["columns"]:
+        if col.name in key_cols:
+            assert not col.nullable
+    assert (
+        len(
+            [
+                c
+                for c in table["constraints"]
+                if c.name == f"unique_{'_'.join(key_cols)}"
+            ]
+        )
+        == 1
+    )
+
+
+@pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
+def test_model_from_schema_with_primary_key_scalar(dialect):
+    schema = deepcopy(sweet_valid)
+    col_key = "id"
+    schema["primaryKey"] = col_key
+    my_manager = SchemaManager()
+    table = my_manager.model_from_schema(
+        schema, validate_schema=True, db_dialect=dialect, create_id_column="sweet_id"
+    )
+    # check the primary key constraints, i.e., each column in the primary key is
+    # not nullable and and one UniqueContraint enforces that the combination of
+    # the columns is unique
+    for col in table["columns"]:
+        if col_key == col.name:
+            assert not col.nullable
+    assert len([c for c in table["constraints"] if c.name == f"unique_{col_key}"]) == 1

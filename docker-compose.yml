@@ -1,4 +1,18 @@
 services:
+  traefik:
+    image: traefik:v2.9
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - my_network
+
   postgres_db:
     image: postgres:latest
     restart: always
@@ -39,7 +53,7 @@ services:
       - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
       - POSTGRES_SERVER=postgres_db
-      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_PORT=5432 #${POSTGRES_PORT?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
@@ -50,12 +64,16 @@ services:
     image: adminer:latest
     container_name: adminer_users
     restart: always
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"
     environment:
       - ADMINER_DESIGN=dracula
     networks:
       - my_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer.rule=Host(`adminer.localhost`)"
+      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
   backend:
     image: "${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}"
@@ -66,11 +84,11 @@ services:
       postgres_db:
         condition: service_healthy
       prestart:
-        condition: service_completed_successfully
+        condition: service_started
     networks:
       - my_network
-    ports:
-      - "${BACKEND_PORT_MAPPED}:8000"
+    # ports:
+    #   - "${BACKEND_PORT_MAPPED}:8000"
     env_file:
       - .env
     environment:
@@ -85,7 +103,18 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - BACKEND_IP=${BACKEND_IP?Variable not set}
       - BACKEND_PORT=${BACKEND_PORT?Variable not set}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
 networks:
   my_network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  portainer_data:
+    driver: local
+

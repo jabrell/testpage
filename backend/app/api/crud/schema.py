@@ -117,7 +117,7 @@ def create_table_from_schema(
     schema_manager: SchemaManager,
     schema_id: int | None = None,
     schema_name: str | None = None,
-    id_column_name: str = "id_",
+    id_column_name: str = "sweet_id",
 ) -> None:
     """Create a table from a schema.
 
@@ -152,7 +152,11 @@ def create_table_from_schema(
         # FIXME: this is a workaround to avoid the error "Table already exists"
         # during test
         Table(
-            model_input["name"], metadata, *model_input["columns"], extend_existing=True
+            model_input["name"],
+            metadata,
+            *model_input["columns"],
+            *model_input["constraints"],
+            extend_existing=True,
         )
         # Create the table in the database
         metadata.create_all(db.bind)  # type: ignore[arg-type]

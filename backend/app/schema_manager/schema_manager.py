@@ -4,7 +4,9 @@ from typing import Any, Literal, cast
 
 import jsonschema
 import yaml  # type: ignore
-from sqlalchemy import Column
+
+# from sqlalchemy import Column, UniqueConstraint
+from sqlmodel import Column, Constraint, UniqueConstraint
 
 from .mappings import map_db_types
 
@@ -216,10 +218,13 @@ class SchemaManager:
                 Defaults to None.
 
         Returns:
-            dict[str, Any]: A dictionary with the table name and columns
+            dict[str, Any]: A dictionary with the table name, columns, and constraints.
                 The table name is the name of the schema and the columns are
-                the columns of the table. The columns are sqlalchemy.Column objects.
+                the columns of the table. The columns are sqlmodel.Column objects.
+                The constraints are table level constraints. Column level constraints
+                are already defined at the column level.
         """
+        constraints: list[Constraint] = []
         # read and validate the schema
         my_schema = self.read_schema_from_file(schema)
         if validate_schema:
@@ -230,21 +235,40 @@ class SchemaManager:
         if db_types is None:
             raise ValueError(f"Database dialect {db_dialect} is not supported")
         db_types = cast(dict[str, Any], db_types)
+
         # metadata for the table
         table_name = my_schema["name"]
         table_columns = [
             SchemaManager._field_to_columns(field=field, db_types=db_types)
             for field in my_schema["fields"]
         ]
+
+        # add an id column to the table
         if create_id_column:
-            # add an id column to the table
             table_columns.insert(
                 0, Column(create_id_column, type_=db_types["integer"], primary_key=True)
+            )
+
+        # if the schema has a primary key, add a constraint to the table that
+        # enforces that these columns are jointly unique and not-null
+        # However, we enforces only the constraint and set the corresponding index
+        # but the (internal) primary key is kept the "real" primary key
+        if primary_key := my_schema.get("primaryKey"):
+            if not isinstance(primary_key, list):
+                primary_key = [primary_key]
+            # Add non-zero constraints
+            for col in table_columns:
+                if col.name in primary_key:
+                    col.nullable = False
+            # Add joint uniqueness constraint
+            constraints.append(
+                UniqueConstraint(*primary_key, name=f"unique_{'_'.join(primary_key)}")
             )
 
         return {
             "name": table_name,
             "columns": table_columns,
+            "constraints": constraints,
         }
 
     @staticmethod
