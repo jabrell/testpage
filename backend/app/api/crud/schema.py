@@ -117,7 +117,7 @@ def create_table_from_schema(
     schema_manager: SchemaManager,
     schema_id: int | None = None,
     schema_name: str | None = None,
-    id_column_name: str = "id_",
+    id_column_name: str = "sweet_id",
 ) -> None:
     """Create a table from a schema.
 
