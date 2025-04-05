@@ -155,5 +155,4 @@ def test_create_table_from_schema(db: Session, schema_manager: SchemaManager) ->
     tab = metadata.tables[table_name]
     tab.drop(db.bind)
     metadata.reflect(bind=db.bind)
-    print(metadata.tables)
     db.commit()
