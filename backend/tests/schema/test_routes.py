@@ -168,8 +168,6 @@ def test_list_schemas(db: Session, schema_manager: SchemaManager) -> None:
     schema = create_schema(db=db, data=sweet_valid, schema_manager=schema_manager)
     response = client.get(url_schema)
     assert response.status_code == status.HTTP_200_OK
-    print(response.json())
-    print(schema.get_public())
     assert response.json() == [schema.get_public().model_dump()]
     db.delete(schema)
     db.commit()

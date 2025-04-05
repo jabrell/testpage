@@ -158,5 +158,4 @@ def create_table_from_schema(
         metadata.create_all(db.bind)  # type: ignore[arg-type]
     except Exception as e:  # pragma: no cover
         db.rollback()
-        print(e)
         raise ValueError("Could not create table") from e

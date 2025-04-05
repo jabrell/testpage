@@ -129,6 +129,24 @@ class SchemaManager:
         }
         return combined_schema
 
+    @staticmethod
+    def _field_in_table(to_check: Any | list[Any], schema: SchemaFileType) -> bool:
+        """Check if a field or a number of fields is in the table
+
+        Args:
+            to_check (Any | list[Any]): Field to check
+            table (list[str]): Table to check against
+
+        Returns:
+            bool: True if the field is in the table, False otherwise
+        """
+        schema = SchemaManager.read_schema_from_file(schema)
+        if not isinstance(to_check, list):
+            to_check = [to_check]
+        to_check = set(to_check)
+        table_fields = {f["name"] for f in schema["fields"]}
+        return to_check.issubset(table_fields)
+
     def validate_schema(self, schema: SchemaFileType) -> dict:
         """Check if a schema is valid given the metadata schema and return it
             as a dictionary
@@ -143,9 +161,39 @@ class SchemaManager:
 
         Returns:
             dict[str, Any]: The schema as a dictionary
+
+        Raises:
+            ValueError: If the primary key is not part of the fields
         """
         schema = SchemaManager.read_schema_from_file(schema)
         jsonschema.validate(instance=schema, schema=self._metaschema)
+
+        # check references: primary keys
+        if primary_key := schema.get("primaryKey"):
+            if not SchemaManager._field_in_table(to_check=primary_key, schema=schema):
+                raise ValueError(f"Primary key {primary_key} is not part of the table")
+        # check references: foreign keys
+        if foreign_keys := schema.get("foreignKeys"):
+            for fkey in foreign_keys:
+                foreign_fields = fkey["fields"]
+                if not isinstance(foreign_fields, list):
+                    foreign_fields = [foreign_fields]
+                # check that fields listed match the length of the referenced fields
+                referenced_fields = fkey["reference"]["fields"]
+                if not isinstance(referenced_fields, list):
+                    referenced_fields = [referenced_fields]
+                if len(foreign_fields) != len(referenced_fields):
+                    raise ValueError(
+                        f"Foreign key {foreign_fields} does not match "
+                        f"the length of the reference fields {referenced_fields}"
+                    )
+                # check that the fields are part of the table
+                if not SchemaManager._field_in_table(
+                    to_check=foreign_fields, schema=schema
+                ):
+                    raise ValueError(
+                        f"Foreign key {foreign_fields} is not part of the table"
+                    )
         return schema
 
     def model_from_schema(

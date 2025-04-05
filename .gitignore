@@ -6,3 +6,4 @@ test.db
 .ruff_cache
 .pytest_cache
 .*_env
+_geteste*
