@@ -159,7 +159,6 @@ def test_delete_user_admin_cannot_delete_itself(admin_token_header: dict[str, st
 
 def test_read_me(admin_token_header: dict[str, str]):
     response = client.get(f"{url_user}/me", headers=admin_token_header)
-    print(response.json())
     assert response.status_code == status.HTTP_200_OK
     assert response.json()["username"] == settings.FIRST_SUPERUSER
     assert response.json()["email"] == settings.FIRST_SUPERUSER_MAIL
