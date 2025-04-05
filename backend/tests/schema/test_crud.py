@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from sqlmodel import Session, inspect
+from sqlmodel import Session, SQLModel, inspect
 
 from app.api.crud.schema import (
     create_schema,
@@ -147,8 +147,6 @@ def test_create_table_from_schema(db: Session, schema_manager: SchemaManager) ->
             create_table_from_schema(db=db, schema_id=1, schema_manager=schema_manager)
 
     # delete the table after the test
-    from sqlmodel import SQLModel
-
     table_name = sweet_valid["name"]
     metadata = SQLModel.metadata
     metadata.reflect(bind=db.bind)

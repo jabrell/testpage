@@ -107,7 +107,7 @@ def test_model_from_schema_with_primary_key_scalar(dialect):
         schema, validate_schema=True, db_dialect=dialect, create_id_column="sweet_id"
     )
     # check the primary key constraints, i.e., each column in the primary key is
-    # not nullable and and one UniqueContraint enforces that the combination of
+    # not nullable and and one UniqueConstraint enforces that the combination of
     # the columns is unique
     for col in table["columns"]:
         if col_key == col.name:

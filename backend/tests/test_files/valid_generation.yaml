@@ -1,6 +1,7 @@
 name: generation
 description: Electricity generation data
 title: Electricity Generation
+primary_key: generation_id
 fields:
   - name: country
     title: Country
