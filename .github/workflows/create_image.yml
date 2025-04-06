@@ -1,6 +1,9 @@
 name: Create Docker Image
 
 on:
+  pull_request:
+    branches:
+      - stage
   workflow_dispatch: # Enables manual triggering of the workflow
 
 env:
@@ -24,7 +27,6 @@ jobs:
       packages: write
       attestations: write
       id-token: write
-    environment: test_aws
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
