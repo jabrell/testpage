@@ -17,7 +17,10 @@
       "type": "debugpy",
       "request": "launch",
       "module": "uvicorn",
-      "args": ["app.main:app", "--reload"],
+      "args": [
+        "app.main:app",
+        "--reload"
+      ],
       "cwd": "${workspaceFolder}/backend",
       "jinja": true
     },
@@ -26,7 +29,10 @@
       "type": "debugpy",
       "request": "launch",
       "module": "pytest",
-      "args": ["backend/", "-k test_create_table_from_schema2"],
+      "args": [
+        "backend/",
+        "-k test_create_table_from_schema_fkey"
+      ],
       "justMyCode": true,
       "console": "integratedTerminal"
     }

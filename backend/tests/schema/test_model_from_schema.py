@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 import pytest
-from sqlalchemy import Integer
+from sqlalchemy import ForeignKeyConstraint, Integer
 
 from app.schema_manager import SchemaManager
 
@@ -113,3 +113,55 @@ def test_model_from_schema_with_primary_key_scalar(dialect):
         if col_key == col.name:
             assert not col.nullable
     assert len([c for c in table["constraints"] if c.name == f"unique_{col_key}"]) == 1
+
+
+@pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
+def test_model_from_schema_with_foreign_key_list(dialect):
+    schema = deepcopy(sweet_valid)
+    schema["foreignKeys"] = [
+        {
+            "fields": ["id"],
+            "reference": {"resource": "other_table", "fields": ["id"]},
+        }
+    ]
+    my_manager = SchemaManager()
+    table = my_manager.model_from_schema(
+        schema, validate_schema=True, db_dialect=dialect, create_id_column="id_"
+    )
+
+    assert table["name"] == schema["name"]
+    assert len(table["columns"]) == len(schema["fields"]) + 1
+    for field in schema["fields"]:
+        assert field["name"] in [col.name for col in table["columns"]]
+    assert table["columns"][0].name == "id_"
+    assert len(table["constraints"]) == 2
+    assert (
+        len([c for c in table["constraints"] if isinstance(c, ForeignKeyConstraint)])
+        == 1
+    )
+
+
+@pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
+def test_model_from_schema_with_foreign_key_scalar(dialect):
+    schema = deepcopy(sweet_valid)
+    schema["foreignKeys"] = [
+        {
+            "fields": "id",
+            "reference": {"resource": "other_table", "fields": "id"},
+        }
+    ]
+    my_manager = SchemaManager()
+    table = my_manager.model_from_schema(
+        schema, validate_schema=True, db_dialect=dialect, create_id_column="id_"
+    )
+
+    assert table["name"] == schema["name"]
+    assert len(table["columns"]) == len(schema["fields"]) + 1
+    for field in schema["fields"]:
+        assert field["name"] in [col.name for col in table["columns"]]
+    assert table["columns"][0].name == "id_"
+    assert len(table["constraints"]) == 2
+    assert (
+        len([c for c in table["constraints"] if isinstance(c, ForeignKeyConstraint)])
+        == 1
+    )

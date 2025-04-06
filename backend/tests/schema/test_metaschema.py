@@ -204,8 +204,8 @@ def test_sweet_extensions_foreign_key_raises():
     # schema foreign keys to not match references
     schema["foreignKeys"] = [
         {
-            "fields": ["id", "invalid"],
-            "reference": {"resource": "other_table", "fields": ["id"]},
+            "fields": ["id"],
+            "reference": {"resource": "other_table", "fields": ["id", "invalid"]},
         }
     ]
     with pytest.raises(ValueError):
