@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlmodel import select
 
-from app.api.crud.schema import create_schema, delete_schema, read_schema
+from app.api.crud.schema import (
+    create_schema,
+    create_table_from_schema,
+    delete_schema,
+    read_schema,
+    toggle_schema,
+)
 from app.api.deps import SchemaManagerDep, SessionDep, is_admin_user
 from app.models.schema import TableSchema, TableSchemaPublic
 
@@ -61,7 +67,7 @@ async def create_schema_api(
     status_code=status.HTTP_200_OK,
     responses={status.HTTP_404_NOT_FOUND: {"description": "Schema not found"}},
 )
-def get_schema(schema_id: int | str, session: SessionDep):
+def get_schema(schema_id: int | str, session: SessionDep) -> TableSchemaPublic:
     """Get a schema either by its ID or by its name.
 
     Args:
@@ -87,6 +93,61 @@ def get_schema(schema_id: int | str, session: SessionDep):
     if not schema:
         raise HTTPException(status_code=404, detail="Schema not found")
     return schema.get_public()
+
+
+@router.post(
+    "/{schema_id}/toggle",
+    status_code=status.HTTP_200_OK,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Schema not found"}},
+    dependencies=[Depends(is_admin_user)],
+)
+def toggle_schema_api(schema_id: int, session: SessionDep):
+    """Activate or deactivate a schema by its ID
+
+    Args:
+        schema_id in: The schema ID.
+        session (SessionDep): The database session.
+    """
+    res = toggle_schema(schema_id=schema_id, db=session)
+    if not res:
+        raise HTTPException(status_code=404, detail="Schema not found")
+
+
+@router.post(
+    "/{schema_id}/create_table",
+    status_code=status.HTTP_201_CREATED,
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Schema not found"}},
+    dependencies=[Depends(is_admin_user)],
+)
+def create_table_for_schema(
+    schema_id: int, session: SessionDep, schema_manager: SchemaManagerDep
+):
+    """Create the table corresponding to the given schema. The table will be created
+        in the database. The table name will be the same as the schema name.
+        The table will be created with the columns defined in the schema.
+        The table will be created with a primary key column named "id_".
+
+    Args:
+        schema_id in: The schema ID.
+        session (SessionDep): The database session.
+    """
+    try:
+        schema_id = int(schema_id)
+        create_table_from_schema(
+            db=session,
+            schema_id=schema_id,
+            schema_manager=schema_manager,
+            id_column_name="id_",
+        )
+    except ValueError as e:
+        msg = str(e)
+        if "already exists" in msg:
+            raise HTTPException(
+                status_code=400,
+                detail="Table already exists. Please delete the table first.",
+            ) from e
+        else:
+            raise HTTPException(status_code=404, detail="cannot create table") from e
 
 
 @router.delete(

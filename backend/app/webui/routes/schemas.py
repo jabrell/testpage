@@ -57,12 +57,68 @@ def schemas(header: dict[str, Any]):
 
 @schema_bp.route("/schema/<int:schema_id>")
 @admin_required
-def view_schema(schema_id, header: dict[str, Any] | None = None):
-    # Fetch the schema details from FastAPI
+def view_schema(schema_id: int, header: dict[str, Any] | None = None):
+    """ "Fetch and display the schema details.
+    Args:
+        schema_id (int): The ID of the schema to fetch.
+        header (dict[str, Any] | None): Optional headers for the request.
+    """
     fastapi_url = get_fastapi_url()
     response = requests.get(f"{fastapi_url}schema/{schema_id}", headers=header)
     if response.status_code == 200:
         schema = response.json()
         return jsonify(schema["jsonschema"])
     flash("Schema not found", "error")
-    return redirect(url_for("schemas"))
+    return redirect(url_for("schemas.schemas"))
+
+
+@schema_bp.route("/schema/<int:schema_id>/toggle")
+@admin_required
+def toggle_schema(schema_id: int, header: dict[str, Any] | None = None):
+    """ "Toggle the schema status (enabled/disabled).
+    Args:
+        schema_id (int): The ID of the schema to toggle.
+        header (dict[str, Any] | None): Optional headers for the request.
+    """
+    # Fetch the schema details from FastAPI
+    fastapi_url = get_fastapi_url()
+    _ = requests.post(f"{fastapi_url}schema/{schema_id}/toggle", headers=header)
+    return redirect(url_for("schemas.schemas"))
+
+
+@schema_bp.route("/schema/<int:schema_id>/create_data_table")
+@admin_required
+def create_data_table(schema_id: int, header: dict[str, Any] | None = None):
+    """Create a data table from the schema.
+    Args:
+        schema_id (int): The ID of the schema to create a table for.
+        header (dict[str, Any] | None): Optional headers for the request.
+    """
+    # Fetch the schema details from FastAPI
+    fastapi_url = get_fastapi_url()
+    response = requests.post(
+        f"{fastapi_url}schema/{schema_id}/create_table", headers=header
+    )
+    if response.status_code == 201:
+        flash("Table created successfully", "schema-success")
+    else:
+        flash("Failed to create table", "schema-error")
+    return redirect(url_for("schemas.schemas"))
+
+
+@schema_bp.route("/schema/<int:schema_id>/delete")
+@admin_required
+def delete_schema(schema_id: int, header: dict[str, Any] | None = None):
+    """Delete a schema by its ID.
+    Args:
+        schema_id (int): The ID of the schema to delete.
+        header (dict[str, Any] | None): Optional headers for the request.
+    """
+    fastapi_url = get_fastapi_url()
+    response = requests.delete(f"{fastapi_url}schema/{schema_id}", headers=header)
+
+    if response.status_code == 200:
+        flash("Schema deleted successfully", "schema-success")
+    else:
+        flash("Failed to delete schema", "schema-error")
+    return redirect(url_for("schemas.schemas"))

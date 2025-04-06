@@ -55,6 +55,9 @@
                     </td>
                     <td>
                         <a href="{{ url_for('schemas.view_schema', schema_id=schema.id) }}" class="btn btn-secondary">View JSON</a>
+                        <a href="{{ url_for('schemas.toggle_schema', schema_id=schema.id) }}" class="btn btn-secondary">(De-)Activate</a>
+                        <a href="{{ url_for('schemas.delete_schema', schema_id=schema.id) }}" class="btn btn-secondary">Delete Schema</a>
+                        <a href="{{ url_for('schemas.create_data_table', schema_id=schema.id) }}" class="btn btn-secondary">Create Data Table</a>
                     </td>
                 </tr>
                 {% endfor %}

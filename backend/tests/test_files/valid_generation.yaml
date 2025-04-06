@@ -1,6 +1,7 @@
 name: generation
 description: Electricity generation data
 title: Electricity Generation
+primaryKey: ["country", "datetime"]
 fields:
   - name: country
     title: Country

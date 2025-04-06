@@ -152,3 +152,71 @@ def test_sweet_extensions_no_additional_fields():
     schema["additional"] = "field"
     with pytest.raises(ValidationError):
         SchemaManager().validate_schema(schema)
+
+
+def test_sweet_extensions_primary_key():
+    """Test extended metadata standard of SWEET"""
+    schema = deepcopy(sweet_valid)
+    my_manager = SchemaManager()
+    # schema contains a valid primary key
+    schema["primaryKey"] = "id"
+    assert my_manager.validate_schema(schema) == schema
+    # should also work with a list
+    schema["primaryKey"] = ["id"]
+    assert my_manager.validate_schema(schema) == schema
+
+
+def test_sweet_extensions_primary_key_invalid():
+    schema = deepcopy(sweet_valid)
+    my_manager = SchemaManager()
+    # schema contains an invalid primary key
+    schema["primaryKey"] = "invalid"
+    with pytest.raises(ValueError):
+        my_manager.validate_schema(schema)
+    # schema contains an invalid primary key
+    schema["primaryKey"] = ["id", "invalid"]
+
+
+def test_sweet_extensions_foreign_key():
+    schema = deepcopy(sweet_valid)
+    my_manager = SchemaManager()
+    # schema contains a valid foreign key‚
+    schema["foreignKeys"] = [
+        {
+            "fields": ["id"],
+            "reference": {"resource": "other_table", "fields": ["id"]},
+        }
+    ]
+    assert my_manager.validate_schema(schema) == schema
+    # also works with just a string
+    schema["foreignKeys"] = [
+        {
+            "fields": "id",
+            "reference": {"resource": "other_table", "fields": "id"},
+        }
+    ]
+    assert my_manager.validate_schema(schema) == schema
+
+
+def test_sweet_extensions_foreign_key_raises():
+    schema = deepcopy(sweet_valid)
+    my_manager = SchemaManager()
+    # schema foreign keys to not match references
+    schema["foreignKeys"] = [
+        {
+            "fields": ["id"],
+            "reference": {"resource": "other_table", "fields": ["id", "invalid"]},
+        }
+    ]
+    with pytest.raises(ValueError):
+        my_manager.validate_schema(schema)
+
+    # foreign keys not in the table
+    schema["foreignKeys"] = [
+        {
+            "fields": ["invalid"],
+            "reference": {"resource": "other_table", "fields": ["id"]},
+        }
+    ]
+    with pytest.raises(ValueError):
+        my_manager.validate_schema(schema)

@@ -1,13 +1,19 @@
 import json
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import jsonschema
 import yaml  # type: ignore
 
+# from sqlalchemy import Column, UniqueConstraint
+from sqlmodel import Column, Constraint, ForeignKeyConstraint, UniqueConstraint
+
+from .mappings import map_db_types
+
 __all__ = ["SchemaManager"]
 
 SchemaFileType = str | Path | dict[str, Any] | bytes
+DbDialect = Literal["sqlite", "postgresql"]
 
 BASE_SCHEMA = Path(__file__).parent / "meta_schemas" / "frictionlessv1.json"
 SWEET_EXTENSIONS = [Path(__file__).parent / "meta_schemas" / "sweet_metastandard.yaml"]
@@ -125,6 +131,24 @@ class SchemaManager:
         }
         return combined_schema
 
+    @staticmethod
+    def _field_in_table(to_check: Any | list[Any], schema: SchemaFileType) -> bool:
+        """Check if a field or a number of fields is in the table
+
+        Args:
+            to_check (Any | list[Any]): Field to check
+            table (list[str]): Table to check against
+
+        Returns:
+            bool: True if the field is in the table, False otherwise
+        """
+        schema = SchemaManager.read_schema_from_file(schema)
+        if not isinstance(to_check, list):
+            to_check = [to_check]
+        to_check = set(to_check)
+        table_fields = {f["name"] for f in schema["fields"]}
+        return to_check.issubset(table_fields)
+
     def validate_schema(self, schema: SchemaFileType) -> dict:
         """Check if a schema is valid given the metadata schema and return it
             as a dictionary
@@ -139,7 +163,150 @@ class SchemaManager:
 
         Returns:
             dict[str, Any]: The schema as a dictionary
+
+        Raises:
+            ValueError: If the primary key is not part of the fields
         """
         schema = SchemaManager.read_schema_from_file(schema)
         jsonschema.validate(instance=schema, schema=self._metaschema)
+
+        # check references: primary keys
+        if primary_key := schema.get("primaryKey"):
+            if not SchemaManager._field_in_table(to_check=primary_key, schema=schema):
+                raise ValueError(f"Primary key {primary_key} is not part of the table")
+        # check references: foreign keys
+        if foreign_keys := schema.get("foreignKeys"):
+            for fkey in foreign_keys:
+                foreign_fields = fkey["fields"]
+                if not isinstance(foreign_fields, list):
+                    foreign_fields = [foreign_fields]
+                # check that fields listed match the length of the referenced fields
+                referenced_fields = fkey["reference"]["fields"]
+                if not isinstance(referenced_fields, list):
+                    referenced_fields = [referenced_fields]
+                if len(foreign_fields) != len(referenced_fields):
+                    raise ValueError(
+                        f"Foreign key {foreign_fields} does not match "
+                        f"the length of the reference fields {referenced_fields}"
+                    )
+                # check that the fields are part of the table
+                if not SchemaManager._field_in_table(
+                    to_check=foreign_fields, schema=schema
+                ):
+                    raise ValueError(
+                        f"Foreign key {foreign_fields} is not part of the table"
+                    )
         return schema
+
+    def model_from_schema(
+        self,
+        schema: SchemaFileType,
+        validate_schema: bool = False,
+        db_dialect: DbDialect = "sqlite",
+        create_id_column: str | None = None,
+    ) -> dict[str, Any]:
+        """Create sqlmodel inputs from a given schema
+
+        Args:
+            schema (str | Path | dict[str, Any]): Schema
+            validate_schema (bool, optional): If True, the schema is validated
+                Defaults to False.
+            db_dialect (DbDialect, optional): Database dialect. Defaults to "sqlite".
+                Can be either "sqlite" or "postgres".
+            create_id_column (str | None, optional): If provided, a column with the
+                given name is added to the table and defined as the primary key.
+                Defaults to None.
+
+        Returns:
+            dict[str, Any]: A dictionary with the table name, columns, and constraints.
+                The table name is the name of the schema and the columns are
+                the columns of the table. The columns are sqlmodel.Column objects.
+                The constraints are table level constraints. Column level constraints
+                are already defined at the column level.
+        """
+        constraints: list[Constraint] = []
+        # read and validate the schema
+        my_schema = self.read_schema_from_file(schema)
+        if validate_schema:
+            my_schema = self.validate_schema(my_schema)
+
+        # get the correct db dialect
+        db_types = map_db_types.get(db_dialect)
+        if db_types is None:
+            raise ValueError(f"Database dialect {db_dialect} is not supported")
+        db_types = cast(dict[str, Any], db_types)
+
+        # metadata for the table
+        table_name = my_schema["name"]
+        table_columns = [
+            SchemaManager._field_to_columns(field=field, db_types=db_types)
+            for field in my_schema["fields"]
+        ]
+
+        # add an primary column to the table
+        if create_id_column:
+            table_columns.insert(
+                0, Column(create_id_column, type_=db_types["integer"], primary_key=True)
+            )
+
+        # if the schema has a primary key, add a constraint to the table that
+        # enforces that these columns are jointly unique and not-null
+        # However, we enforces only the constraint and set the corresponding index
+        # but the (internal) primary key is kept the "real" primary key
+        if primary_key := my_schema.get("primaryKey"):
+            if not isinstance(primary_key, list):
+                primary_key = [primary_key]
+            # Add non-zero constraints
+            for col in table_columns:
+                if col.name in primary_key:
+                    col.nullable = False
+            # Add joint uniqueness constraint
+            constraints.append(
+                UniqueConstraint(*primary_key, name=f"unique_{'_'.join(primary_key)}")
+            )
+
+        # if the schema has foreign keys, add constraints to the table that
+        # enforce that these columns are foreign keys
+        if foreign_keys := my_schema.get("foreignKeys"):
+            for fkey in foreign_keys:
+                foreign_fields = fkey["fields"]
+                ref_table = fkey["reference"]["resource"]
+                ref_fields = fkey["reference"]["fields"]
+                # the schema enforces to either have scalar of string on both fields
+                # so only check needed here
+                if not isinstance(foreign_fields, list):
+                    foreign_fields = [foreign_fields]
+                    ref_fields = [ref_fields]
+                ref_fields = [f"{ref_table}.{f}" for f in ref_fields]
+                # add the constraint
+                constraints.append(
+                    ForeignKeyConstraint(columns=foreign_fields, refcolumns=ref_fields)
+                )
+
+        return {
+            "name": table_name,
+            "columns": table_columns,
+            "constraints": constraints,
+        }
+
+    @staticmethod
+    def _field_to_columns(field: dict[str, Any], db_types: dict[str, Any]) -> Column:
+        """Convert a field in the schema to sqlalchemy column
+
+        Args:
+            field (dict[str, Any]): Field in the schema
+            db_types (dict[str, Any]): Database types
+
+        Returns:
+            Column: SQLAlchemy column object
+        """
+        # Todo: add support for constraints
+        field_name = field["name"]
+        field_type = field["type"]
+        if field_type not in db_types:
+            raise ValueError(
+                f"Field type {field_type} is not supported for given db dialect"
+            )
+        db_field_type = db_types[field_type]
+        column: Column = Column(field_name, type_=db_field_type)
+        return column
