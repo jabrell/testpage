@@ -78,6 +78,8 @@ def delete_schema(
     Returns:
         bool: True if the schema was deleted, False otherwise.
     """
+    # TODO: check if an associated table exists. If so, demand deleting the
+    # table first
     try:
         schema = read_schema(db=db, schema_id=schema_id, schema_name=schema_name)
         db.delete(schema)
@@ -149,14 +151,13 @@ def create_table_from_schema(
     # TODO: it would be better to handle table creation with alembic
     try:
         metadata = SQLModel.metadata
-        # FIXME: this is a workaround to avoid the error "Table already exists"
-        # during test
+        metadata.clear()
+        metadata.reflect(bind=db.bind)  # type: ignore[arg-type]
         Table(
             model_input["name"],
             metadata,
             *model_input["columns"],
             *model_input["constraints"],
-            extend_existing=True,
         )
         # Create the table in the database
         metadata.create_all(db.bind)  # type: ignore[arg-type]

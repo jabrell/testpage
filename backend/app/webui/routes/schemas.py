@@ -104,3 +104,21 @@ def create_data_table(schema_id: int, header: dict[str, Any] | None = None):
     else:
         flash("Failed to create table", "schema-error")
     return redirect(url_for("schemas.schemas"))
+
+
+@schema_bp.route("/schema/<int:schema_id>/delete")
+@admin_required
+def delete_schema(schema_id: int, header: dict[str, Any] | None = None):
+    """Delete a schema by its ID.
+    Args:
+        schema_id (int): The ID of the schema to delete.
+        header (dict[str, Any] | None): Optional headers for the request.
+    """
+    fastapi_url = get_fastapi_url()
+    response = requests.delete(f"{fastapi_url}schema/{schema_id}", headers=header)
+
+    if response.status_code == 200:
+        flash("Schema deleted successfully", "schema-success")
+    else:
+        flash("Failed to delete schema", "schema-error")
+    return redirect(url_for("schemas.schemas"))

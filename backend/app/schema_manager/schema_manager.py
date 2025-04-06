@@ -6,7 +6,7 @@ import jsonschema
 import yaml  # type: ignore
 
 # from sqlalchemy import Column, UniqueConstraint
-from sqlmodel import Column, Constraint, UniqueConstraint
+from sqlmodel import Column, Constraint, ForeignKeyConstraint, UniqueConstraint
 
 from .mappings import map_db_types
 
@@ -243,7 +243,7 @@ class SchemaManager:
             for field in my_schema["fields"]
         ]
 
-        # add an id column to the table
+        # add an primary column to the table
         if create_id_column:
             table_columns.insert(
                 0, Column(create_id_column, type_=db_types["integer"], primary_key=True)
@@ -264,6 +264,24 @@ class SchemaManager:
             constraints.append(
                 UniqueConstraint(*primary_key, name=f"unique_{'_'.join(primary_key)}")
             )
+
+        # if the schema has foreign keys, add constraints to the table that
+        # enforce that these columns are foreign keys
+        if foreign_keys := my_schema.get("foreignKeys"):
+            for fkey in foreign_keys:
+                foreign_fields = fkey["fields"]
+                ref_table = fkey["reference"]["resource"]
+                ref_fields = fkey["reference"]["fields"]
+                # the schema enforces to either have scalar of string on both fields
+                # so only check needed here
+                if not isinstance(foreign_fields, list):
+                    foreign_fields = [foreign_fields]
+                    ref_fields = [ref_fields]
+                ref_fields = [f"{ref_table}.{f}" for f in ref_fields]
+                # add the constraint
+                constraints.append(
+                    ForeignKeyConstraint(columns=foreign_fields, refcolumns=ref_fields)
+                )
 
         return {
             "name": table_name,
