@@ -1,6 +1,9 @@
 name: Create Docker Image
 
 on:
+  pull_request:
+    branches:
+      - stage
   workflow_dispatch: # Enables manual triggering of the workflow
 
 env:
