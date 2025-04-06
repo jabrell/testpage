@@ -78,6 +78,8 @@ def delete_schema(
     Returns:
         bool: True if the schema was deleted, False otherwise.
     """
+    # TODO: check if an associated table exists. If so, demand deleting the
+    # table first
     try:
         schema = read_schema(db=db, schema_id=schema_id, schema_name=schema_name)
         db.delete(schema)
