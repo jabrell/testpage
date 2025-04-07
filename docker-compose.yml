@@ -53,7 +53,7 @@ services:
       - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
       - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
       - POSTGRES_SERVER=postgres_db
-      - POSTGRES_PORT=5432 #${POSTGRES_PORT?Variable not set}
+      - POSTGRES_PORT=${POSTGRES_PORT?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
@@ -114,7 +114,5 @@ networks:
 
 volumes:
   postgres_data:
-    driver: local
-  portainer_data:
     driver: local
 

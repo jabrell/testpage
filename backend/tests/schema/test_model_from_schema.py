@@ -90,7 +90,7 @@ def test_model_from_schema_with_primary_key(dialect):
             [
                 c
                 for c in table["constraints"]
-                if c.name == f"unique_{'_'.join(key_cols)}"
+                if c.name == f"unique_{schema['name']}_{'_'.join(key_cols)}"
             ]
         )
         == 1
@@ -112,7 +112,16 @@ def test_model_from_schema_with_primary_key_scalar(dialect):
     for col in table["columns"]:
         if col_key == col.name:
             assert not col.nullable
-    assert len([c for c in table["constraints"] if c.name == f"unique_{col_key}"]) == 1
+    assert (
+        len(
+            [
+                c
+                for c in table["constraints"]
+                if c.name == f"unique_{schema['name']}_{col_key}"
+            ]
+        )
+        == 1
+    )
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])

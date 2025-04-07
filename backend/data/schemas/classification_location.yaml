@@ -1,0 +1,51 @@
+# ----------------------------------------------------------------------------
+#                         TABLE DESCRIPTION
+# ----------------------------------------------------------------------------
+name: class_location
+title: Country
+description: |
+  Hierarchical classification for locations. This classification allows for
+  countries and sub-regions. It uses the ISO 3166-1 alpha-2 together with
+  ISO 3166-2 for sub-regions.
+
+# ----------------------------------------------------------------------------
+#                  FRICTIONLESS FIELDS/COLUMNS
+# ----------------------------------------------------------------------------
+primaryKey: id
+
+foreignKeys:
+  - fields: id_parent
+    reference:
+      resource: class_location
+      fields: id
+
+fields:
+  - name: id
+    type: string
+    title: Country code
+    description: 2 digit iso country code
+    constraints:
+      required: true
+      maxLength: 5
+
+  - name: level
+    type: integer
+    title: Hierarchical level
+    description: The level within the classification hierarchy
+    constraints:
+      required: true
+      minimum: 0
+
+  - name: id_parent
+    type: string
+    title: Link to parent
+    description: The unique identifier for the parent country
+    constraints:
+      maxLength: 5
+
+  - name: label
+    type: string
+    title: Country
+    description: Full country name
+    constraints:
+      maxLength: 255
