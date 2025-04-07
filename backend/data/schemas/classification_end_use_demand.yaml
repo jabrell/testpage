@@ -3,8 +3,8 @@
 # ----------------------------------------------------------------------------
 name: class_end_use_demand
 title: Classification for end-use demand
-description: Hierarchical classification of end-use demand types. 
- 
+description: Hierarchical classification of end-use demand types.
+
 # ----------------------------------------------------------------------------
 #                  FRICTIONLESS FIELDS/COLUMNS
 # ----------------------------------------------------------------------------

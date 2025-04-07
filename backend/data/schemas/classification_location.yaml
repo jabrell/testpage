@@ -4,10 +4,10 @@
 name: class_location
 title: Country
 description: |
-  Hierarchical classification for locations. This classification allows for 
-  countries and sub-regions. It uses the ISO 3166-1 alpha-2 together with 
+  Hierarchical classification for locations. This classification allows for
+  countries and sub-regions. It uses the ISO 3166-1 alpha-2 together with
   ISO 3166-2 for sub-regions.
- 
+
 # ----------------------------------------------------------------------------
 #                  FRICTIONLESS FIELDS/COLUMNS
 # ----------------------------------------------------------------------------
