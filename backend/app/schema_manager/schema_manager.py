@@ -262,7 +262,9 @@ class SchemaManager:
                     col.nullable = False
             # Add joint uniqueness constraint
             constraints.append(
-                UniqueConstraint(*primary_key, name=f"unique_{'_'.join(primary_key)}")
+                UniqueConstraint(
+                    *primary_key, name=f"unique_{table_name}_{'_'.join(primary_key)}"
+                )
             )
 
         # if the schema has foreign keys, add constraints to the table that

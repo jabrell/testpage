@@ -31,7 +31,7 @@
       "module": "pytest",
       "args": [
         "backend/",
-        "-k test_create_table_from_schema_fkey"
+        "-k test_full_foreign_key"
       ],
       "justMyCode": true,
       "console": "integratedTerminal"

@@ -1,0 +1,48 @@
+# ----------------------------------------------------------------------------
+#                         TABLE DESCRIPTION
+# ----------------------------------------------------------------------------
+name: class_end_use_demand
+title: Classification for end-use demand
+description: Hierarchical classification of end-use demand types. 
+ 
+# ----------------------------------------------------------------------------
+#                  FRICTIONLESS FIELDS/COLUMNS
+# ----------------------------------------------------------------------------
+primaryKey: id
+
+foreignKeys:
+  - fields: id_parent
+    reference:
+      resource: class_end_use_demand
+      fields: id
+
+fields:
+  - name: id
+    type: string
+    title: End-use demand type
+    description: The unique identifier for the end-use demand type
+    constraints:
+      required: true
+      maxLength: 255
+
+  - name: level
+    type: integer
+    title: Hierarchical level
+    description: The level within the classification hierarchy
+    constraints:
+      required: true
+      minimum: 0
+
+  - name: id_parent
+    type: string
+    title: Link to parent
+    description: The unique identifier for the parent end-use demand type
+    constraints:
+      maxLength: 255
+
+  - name: label
+    type: string
+    title: End-use demand type
+    description: The label for the end-use demand type
+    constraints:
+      maxLength: 255
