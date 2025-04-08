@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import pytest
 from sqlalchemy import ForeignKeyConstraint, Integer
+from sqlmodel import Session
 
 from app.schema_manager import SchemaManager
 
@@ -25,7 +26,7 @@ def test_column_from_field_no_constraint_wrong_type():
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
-def test_model_from_schema(dialect):
+def test_model_from_schema(dialect: str):
     schema = deepcopy(sweet_valid)
     del schema["primaryKey"]
     my_manager = SchemaManager()
@@ -41,7 +42,7 @@ def test_model_from_schema(dialect):
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
-def test_model_from_schema_with_id(dialect):
+def test_model_from_schema_with_id(dialect: str):
     schema = deepcopy(sweet_valid)
     my_manager = SchemaManager()
     table = my_manager.model_from_schema(
@@ -71,7 +72,7 @@ def test_model_from_schema_raise_wrong_dialect():
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
-def test_model_from_schema_with_primary_key(dialect):
+def test_model_from_schema_with_primary_key(dialect: str):
     schema = deepcopy(sweet_valid)
     key_cols = ["id", "name"]
     schema["primaryKey"] = key_cols
@@ -98,7 +99,7 @@ def test_model_from_schema_with_primary_key(dialect):
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
-def test_model_from_schema_with_primary_key_scalar(dialect):
+def test_model_from_schema_with_primary_key_scalar(dialect: str):
     schema = deepcopy(sweet_valid)
     col_key = "id"
     schema["primaryKey"] = col_key
@@ -125,7 +126,7 @@ def test_model_from_schema_with_primary_key_scalar(dialect):
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
-def test_model_from_schema_with_foreign_key_list(dialect):
+def test_model_from_schema_with_foreign_key_list(db: Session, dialect: str):
     schema = deepcopy(sweet_valid)
     schema["foreignKeys"] = [
         {
@@ -135,7 +136,7 @@ def test_model_from_schema_with_foreign_key_list(dialect):
     ]
     my_manager = SchemaManager()
     table = my_manager.model_from_schema(
-        schema, validate_schema=True, db_dialect=dialect, create_id_column="id_"
+        schema, validate_schema=True, db_dialect=dialect, create_id_column="id_", db=db
     )
 
     assert table["name"] == schema["name"]
@@ -151,7 +152,7 @@ def test_model_from_schema_with_foreign_key_list(dialect):
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
-def test_model_from_schema_with_foreign_key_scalar(dialect):
+def test_model_from_schema_with_foreign_key_scalar(db: Session, dialect: str):
     schema = deepcopy(sweet_valid)
     schema["foreignKeys"] = [
         {
@@ -161,7 +162,7 @@ def test_model_from_schema_with_foreign_key_scalar(dialect):
     ]
     my_manager = SchemaManager()
     table = my_manager.model_from_schema(
-        schema, validate_schema=True, db_dialect=dialect, create_id_column="id_"
+        schema, validate_schema=True, db_dialect=dialect, create_id_column="id_", db=db
     )
 
     assert table["name"] == schema["name"]

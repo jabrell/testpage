@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 from jsonschema.exceptions import ValidationError
+from sqlmodel import Session
 
 from app.schema_manager import SchemaManager
 
@@ -177,7 +178,7 @@ def test_sweet_extensions_primary_key_invalid():
     schema["primaryKey"] = ["id", "invalid"]
 
 
-def test_sweet_extensions_foreign_key():
+def test_sweet_extensions_foreign_key(db: Session):
     schema = deepcopy(sweet_valid)
     my_manager = SchemaManager()
     # schema contains a valid foreign key‚
@@ -187,7 +188,7 @@ def test_sweet_extensions_foreign_key():
             "reference": {"resource": "other_table", "fields": ["id"]},
         }
     ]
-    assert my_manager.validate_schema(schema) == schema
+    assert my_manager.validate_schema(schema, db=db) == schema
     # also works with just a string
     schema["foreignKeys"] = [
         {
@@ -195,10 +196,10 @@ def test_sweet_extensions_foreign_key():
             "reference": {"resource": "other_table", "fields": "id"},
         }
     ]
-    assert my_manager.validate_schema(schema) == schema
+    assert my_manager.validate_schema(schema, db=db) == schema
 
 
-def test_sweet_extensions_foreign_key_raises():
+def test_sweet_extensions_foreign_key_raises(db: Session):
     schema = deepcopy(sweet_valid)
     my_manager = SchemaManager()
     # schema foreign keys to not match references
@@ -209,7 +210,7 @@ def test_sweet_extensions_foreign_key_raises():
         }
     ]
     with pytest.raises(ValueError):
-        my_manager.validate_schema(schema)
+        my_manager.validate_schema(schema, db=db)
 
     # foreign keys not in the table
     schema["foreignKeys"] = [
@@ -219,4 +220,4 @@ def test_sweet_extensions_foreign_key_raises():
         }
     ]
     with pytest.raises(ValueError):
-        my_manager.validate_schema(schema)
+        my_manager.validate_schema(schema, db=db)

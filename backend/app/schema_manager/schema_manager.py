@@ -6,7 +6,9 @@ import jsonschema
 import yaml  # type: ignore
 
 # from sqlalchemy import Column, UniqueConstraint
-from sqlmodel import Column, Constraint, ForeignKeyConstraint, UniqueConstraint
+from sqlmodel import Column, Constraint, ForeignKeyConstraint, Session, UniqueConstraint
+
+from app.api.crud.schema import read_schema
 
 from .mappings import map_db_types
 
@@ -149,7 +151,9 @@ class SchemaManager:
         table_fields = {f["name"] for f in schema["fields"]}
         return to_check.issubset(table_fields)
 
-    def validate_schema(self, schema: SchemaFileType) -> dict:
+    def validate_schema(
+        self, schema: SchemaFileType, db: Session | None = None
+    ) -> dict:
         """Check if a schema is valid given the metadata schema and return it
             as a dictionary
 
@@ -157,6 +161,9 @@ class SchemaManager:
             schema (str | Path | dict[str, Any]): Schema to check
                 If a string or pathlib.Path is provided, it is assumed to be the
                 path to a schema file in json or yaml format.
+            db (Session | None, optional): Database session. Defaults to None.
+                If provided foreign key contraints are validated against schemas
+                already in the database.
 
         Raises:
             jsonschema.exceptions.ValidationError: If the schema is not valid
@@ -175,6 +182,22 @@ class SchemaManager:
             if not SchemaManager._field_in_table(to_check=primary_key, schema=schema):
                 raise ValueError(f"Primary key {primary_key} is not part of the table")
         # check references: foreign keys
+        SchemaManager._check_foreign_key(schema=schema, db=db)
+        return schema
+
+    @staticmethod
+    def _check_foreign_key(schema: SchemaFileType, db: Session | None = None) -> bool:
+        """Check foreign key constraint in terms if field existence but also if
+        the reference is valid.
+
+        Args:
+            foreign_key (dict[str, Any]): Foreign key to check
+            db (Session | None, optional): Database session. Defaults to None.
+                If provided foreign key constraints are validated against schemas
+
+        Returns:
+            bool: True if the foreign key is valid, False otherwise
+        """
         if foreign_keys := schema.get("foreignKeys"):
             for fkey in foreign_keys:
                 foreign_fields = fkey["fields"]
@@ -196,7 +219,26 @@ class SchemaManager:
                     raise ValueError(
                         f"Foreign key {foreign_fields} is not part of the table"
                     )
-        return schema
+                # check that the reference is valid
+                ref_table = fkey["reference"]["resource"]
+                # self references can be resolved without reading the other schema
+                if ref_table == schema["name"]:
+                    ref_schema = schema
+                else:
+                    if db is None:
+                        raise ValueError(
+                            "Database session is required to check foreign keys"
+                        )
+                    # read the schema from the database
+                    try:
+                        ref_schema = read_schema(db=db).dump()
+                    except ValueError as e:
+                        raise ValueError(
+                            f"Foreign key schema {ref_table} not found in the database"  # noqa
+                        ) from e
+                        # ref_schema = {}
+                print(ref_schema)
+        return True
 
     def model_from_schema(
         self,
@@ -204,6 +246,7 @@ class SchemaManager:
         validate_schema: bool = False,
         db_dialect: DbDialect = "sqlite",
         create_id_column: str | None = None,
+        db: Session | None = None,
     ) -> dict[str, Any]:
         """Create sqlmodel inputs from a given schema
 
@@ -216,6 +259,9 @@ class SchemaManager:
             create_id_column (str | None, optional): If provided, a column with the
                 given name is added to the table and defined as the primary key.
                 Defaults to None.
+            db (Session | None, optional): Database session. Defaults to None.
+                If provided foreign key constraints are validated against schemas
+                already in the database.
 
         Returns:
             dict[str, Any]: A dictionary with the table name, columns, and constraints.
@@ -228,7 +274,7 @@ class SchemaManager:
         # read and validate the schema
         my_schema = self.read_schema_from_file(schema)
         if validate_schema:
-            my_schema = self.validate_schema(my_schema)
+            my_schema = self.validate_schema(my_schema, db=db)
 
         # get the correct db dialect
         db_types = map_db_types.get(db_dialect)

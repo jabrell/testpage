@@ -1,11 +1,15 @@
+from typing import TYPE_CHECKING
+
 from sqlmodel import Session, SQLModel, Table, inspect, or_, select
 
 from app.models.schema import TableSchema, TableSchemaPublic
-from app.schema_manager import SchemaManager
+
+if TYPE_CHECKING:
+    from app.schema_manager import SchemaManager
 
 
 def create_schema(
-    *, db: Session, data: bytes, schema_manager: SchemaManager
+    *, db: Session, data: bytes, schema_manager: "SchemaManager"
 ) -> TableSchemaPublic:
     """Writes a schema to the database. The schema is validated against the
         meta-schema. The schema is not activated by default.
@@ -116,7 +120,7 @@ def toggle_schema(
 def create_table_from_schema(
     *,
     db: Session,
-    schema_manager: SchemaManager,
+    schema_manager: "SchemaManager",
     schema_id: int | None = None,
     schema_name: str | None = None,
     id_column_name: str = "sweet_id",
@@ -141,6 +145,7 @@ def create_table_from_schema(
         validate_schema=True,
         db_dialect=db.bind.dialect.name,  # type: ignore[union-attr, arg-type]
         create_id_column=id_column_name,
+        db=db,
     )
     # if the table already exists, raise an error
     inspector = inspect(db.bind)
