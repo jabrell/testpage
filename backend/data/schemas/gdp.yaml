@@ -1,0 +1,78 @@
+# ----------------------------------------------------------------------------
+#                         TABLE DESCRIPTION
+# ----------------------------------------------------------------------------
+name: gdp
+title: Gross Domestic Product (GDP)
+description: |
+  This table contains the Gross Domestic Product (GDP) data for various
+  countries and regions. The GDP is a measure of the economic performance of a
+  country or region, representing the total value of all goods and services
+  produced over a specific time period.
+# ----------------------------------------------------------------------------
+#                DATA DISCOVERY AND ONTOLOGY INFORMATION
+# ----------------------------------------------------------------------------
+tags:
+  - economic
+  - timeseries
+
+# ----------------------------------------------------------------------------
+#                DESCRIPTION OF SPECIAL COLUMNS/FIELDS
+# ---------------------------------------------------------------------------
+valueField:
+  field: gdp
+  unit: Euro
+
+timeFields:
+  - field: year
+    frequency: yearly
+
+locationFields:
+  - field: country_id
+    locationType: country
+  - field: country_label
+    locationType: country
+
+# ----------------------------------------------------------------------------
+#                  FRICTIONLESS FIELDS/COLUMNS
+# ----------------------------------------------------------------------------
+fields:
+  - name: year
+    type: integer
+    title: Year
+    description: Year of the GDP data
+    constraints:
+      required: true
+      minimum: 1900
+      maximum: 2100
+
+  - name: country_id
+    type: string
+    title: Country Code
+    description: ISO 3166-1 alpha-2 country code
+    constraints:
+      required: true
+      maxLength: 2
+      enum:
+        - AT
+        - DE
+        - CH
+
+  - name: country_label
+    type: string
+    title: Country
+    description: Name of the country
+    constraints:
+      required: true
+      maxLength: 255
+      enum:
+        - Austria
+        - Germany
+        - Switzerland
+
+  - name: gdp
+    type: number
+    title: Gross Domestic Product (GDP)
+    description: Total GDP in Euros
+    constraints:
+      required: true
+      minimum: 0
