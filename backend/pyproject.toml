@@ -9,6 +9,7 @@ dependencies = [
     "boto3>=1.37.15",
     "fastapi[standard]>=0.115.11",
     "flask>=3.1.0",
+    "h11>=0.16.0",
     "jsonschema>=4.23.0",
     "passlib[bcrypt]>=1.7.4",
     "psycopg2-binary>=2.9.10",
