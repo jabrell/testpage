@@ -21,12 +21,10 @@ schema_bp = Blueprint("schemas", __name__)
 def schemas(header: dict[str, Any]):
     if request.method == "POST":
         if "file" not in request.files:
-            flash("No file part", "error")
-            return redirect(url_for("schemas"))
+            return redirect(url_for("schemas.schema", error_message="No file part"))
         file = request.files["file"]
         if file.filename == "":
-            flash("No selected file", "schema-error")
-            return redirect(url_for("schemas"))
+            return redirect(url_for("schemas.schema"), error_message="No file selected")
         if file:
             # Send the file to the FastAPI endpoint
             response = requests.post(
@@ -35,23 +33,37 @@ def schemas(header: dict[str, Any]):
                 headers=header,
             )
             if response.status_code == 201:
-                flash("Schema created successfully", "schema-success")
-                return redirect(url_for("schemas.schemas"))
+                return redirect(
+                    url_for(
+                        "schemas.schemas", success_message="Schema created successfully"
+                    )
+                )
             else:
                 # Display the error message from the FastAPI response
                 try:
                     error_message = response.json().get("detail", "An error occurred")
-                    flash(error_message, "schema-error")
-                    return redirect(url_for("schemas.schemas"))
+                    if "Failed validating" in error_message:
+                        index = error_message.index("Failed validating")
+                        error_message = error_message[:index]
+                    return redirect(
+                        url_for("schemas.schemas", error_message=error_message)
+                    )
                 except Exception:
-                    flash("An error ocurred", "schema-error")
-                    return redirect(url_for("home"))
+                    return redirect(url_for("schemas.schemas"))
 
     # Fetch the list of schemas from FastAPI
     response = requests.get(f"{get_fastapi_url()}schema", headers=header)
     if response.status_code == 200:
         schemas = response.json()
-        return render_template("schema.html", schemas=schemas)
+        # Get the error message and success message from the query parameters
+        error_message = request.args.get("error_message")
+        success_message = request.args.get("success_message")
+        return render_template(
+            "schema.html",
+            schemas=schemas,
+            error_message=error_message,
+            success_message=success_message,
+        )
     return "Failed to fetch schemas", 500
 
 

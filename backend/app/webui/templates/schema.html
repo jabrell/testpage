@@ -11,21 +11,17 @@
             <label for="file" class="form-label">Please upload new schema (YAML or JSON):</label>
             <input class="form-control" type="file" id="file" name="file" accept=".yaml,.json" required>
         </div>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    {% if 'schema' in category %}
-                    <div class="alert
-                            {% if 'success' in message %} alert-success
-                            {% else %}  alert-danger
-                            {% endif %}">
-                        {{ message }}
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
         <button type="submit" class="btn btn-primary">Upload</button>
+        {% if error_message %}
+            <div class="alert alert-danger mt-3" style="white-space: pre-wrap;">
+                 {{ error_message }}
+            </div>
+        {% endif %}
+        {% if success_message %}
+            <div class="alert alert-success mt-3" style="white-space: pre-wrap;">
+                 {{ success_message }}
+            </div>
+        {% endif %}
     </form>
 
     <h2 class="mt-5 mb-4">Existing Schemas</h2>

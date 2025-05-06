@@ -1,0 +1,98 @@
+# ----------------------------------------------------------------------------
+#                         TABLE DESCRIPTION
+# ----------------------------------------------------------------------------
+name: generation
+title: Hourly electricity generation
+description: |
+  This table contains the hourly electricity generation data for various
+  countries and regions. The data includes the amount of electricity generated
+  from different sources such as renewables, fossil fuels, and nuclear energy.
+
+# ----------------------------------------------------------------------------
+#                DATA DISCOVERY AND ONTOLOGY INFORMATION
+# ----------------------------------------------------------------------------
+tags:
+  - electricity
+  - timeseries
+  - generation
+
+# ----------------------------------------------------------------------------
+#                DESCRIPTION OF SPECIAL COLUMNS/FIELDS
+# ---------------------------------------------------------------------------
+valueField:
+  field: generation
+  unit: MWh
+
+timeFields:
+  - field: year
+    frequency: yearly
+  - field: datetime
+    frequency: hourly
+
+locationFields:
+  - field: country_id
+    locationType: country
+  - field: country_label
+    locationType: country
+
+# ----------------------------------------------------------------------------
+#                  FRICTIONLESS FIELDS/COLUMNS
+# ----------------------------------------------------------------------------
+fields:
+  - name: year
+    type: integer
+    title: Year
+    description: Year of the GDP data
+    constraints:
+      required: true
+      minimum: 1900
+      maximum: 2100
+
+  - name: country_id
+    type: string
+    title: Country Code
+    description: ISO 3166-1 alpha-2 country code
+    constraints:
+      required: true
+      maxLength: 2
+      enum:
+        - AT
+        - DE
+        - CH
+
+  - name: country_label
+    type: string
+    title: Country
+    description: Name of the country
+    constraints:
+      required: true
+      maxLength: 255
+      enum:
+        - Austria
+        - Germany
+        - Switzerland
+
+  - name: technology
+    type: string
+    title: Technology
+    description: Type of technology used for generation
+    constraints:
+      required: true
+      maxLength: 255
+      enum:
+        - Coal
+        - Gas
+        - Hydro
+        - Other
+        - Solar
+        - Wind
+        - Nuclear
+        - Lignite
+
+  - name: generation
+    type: number
+    title: Hourly Electricity Generation
+    description: Amount of electricity generated in MWh
+    constraints:
+      required: true
+      minimum: 0
